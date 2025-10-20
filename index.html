@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>이산확률변수의 기댓값과 표준편차 (50분 수업용)</title>
+    <style>
+        /* 1. Global & Variables */
+        :root {
+            --primary-color: #007bff; /* Blue */
+            --primary-light: #6aa8ff;
+            --accent-color: #ff9800; /* Orange for interaction */
+            --background-color: #f0f4f7; 
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #ced4da;
+            --shadow-light: 0 4px 8px rgba(0, 0, 0, 0.05);
+            --shadow-strong: 0 8px 16px rgba(0, 0, 0, 0.1);
+            --ai-bg: #e6f3ff; /* Light blue for AI messages */
+            --user-bg: #f1f1f1; /* Light gray for user messages */
+        }
+
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', Roboto, 'Noto Sans KR', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px 10px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding-bottom: 20px; 
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* 2. Typography & Header */
+        h1 {
+            font-size: 2.2rem;
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            color: var(--text-color);
+            border-bottom: 4px solid var(--primary-light);
+            padding-bottom: 5px;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        h3 {
+             font-size: 1.3rem;
+             color: var(--accent-color);
+             margin-top: 20px;
+             margin-bottom: 10px;
+        }
+
+        /* 3. Card/Module Styling */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow-strong);
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.4, 1), box-shadow 0.4s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        /* 4. Canvas Styling & Dice Overlay */
+        canvas {
+            width: 100%;
+            border: 2px solid var(--primary-light);
+            border-radius: 10px;
+            background-color: #ffffff;
+            margin-top: 15px;
+        }
+        
+        #diceSimulationContainer {
+            position: relative;
+        }
+
+        #diceOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            z-index: 10;
+        }
+
+        /* 5. Button & Form Elements (Enhanced Touch Targets) */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px; /* Great for touch */
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--card-bg);
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.15s ease, box-shadow 0.3s ease;
+            box-shadow: var(--shadow-light);
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-light);
+            box-shadow: var(--shadow-strong);
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+        
+        .quiz-btn {
+            background-color: #28a745;
+        }
+        .quiz-btn:hover {
+            background-color: #218838;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 14px; /* Great for touch */
+            margin-bottom: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1.1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
+            outline: none;
+        }
+        
+        /* 수식 영역 스타일 (교과서처럼 보이도록 단순화) */
+        .math-expr {
+            font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif; 
+            font-size: 1.15rem;
+            background-color: #e9ecef;
+            padding: 3px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 0 2px;
+            color: #495057;
+            white-space: nowrap;
+        }
+        
+        .formula-display {
+            background-color: #e3f2fd; /* Light blue for formula box */
+            border-left: 5px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 1.05rem;
+            font-weight: 600;
+            overflow-x: auto; 
+        }
+        .formula-display strong {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .quiz-feedback {
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: 600;
+            min-height: 50px;
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
+        }
+
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .incorrect {
+            background-color: #f8d7da; 
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* 테이블 스타일링 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 1rem;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        .data-table th {
+            background-color: var(--primary-light);
+            color: white;
+        }
+        .data-table tr:nth-child(even) {
+            background-color: #f8f8ff;
+        }
+        
+        /* 기타 스타일 */
+        .stat-label { color: #6c757d; }
+        .stat-value { color: var(--accent-color); font-size: 1.8rem; font-weight: 800; }
+        .practice-input-group label { text-align: right; font-weight: bold; flex-basis: 120px; }
+
+        /* 7. Chat Styles */
+        .message {
+            display: flex;
+            margin-bottom: 10px;
+            max-width: 100%;
+        }
+
+        .user-message {
+            margin-left: auto;
+            justify-content: flex-end;
+        }
+
+        .ai-message {
+            margin-right: auto;
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-size: 1rem;
+            line-height: 1.4;
+            word-break: break-word;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-message .message-content {
+            background-color: var(--user-bg);
+            color: var(--text-color);
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-message .message-content {
+            background-color: var(--ai-bg);
+            color: var(--primary-color);
+            border-bottom-left-radius: 4px;
+            border: 1px solid #cce5ff;
+        }
+
+        .loading-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin: 0 1px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes bounce {
+          0%, 80%, 100% { transform: scale(0); }
+          40% { transform: scale(1.0); }
+        }
+        
+        /* 8. Floating Chat Widget (New Fixed Interface) */
+        #chat-toggle-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.5rem;
+            border: none;
+            box-shadow: var(--shadow-strong);
+            cursor: pointer;
+            z-index: 2000;
+            transition: background-color 0.3s;
+        }
+        #chat-toggle-button:hover { background-color: var(--primary-light); }
+
+        #floating-chat-widget {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 90vw; /* Mobile width */
+            max-width: 400px; /* Desktop max width */
+            height: 70vh;
+            max-height: 500px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            z-index: 1999;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #floating-chat-widget.closed {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px) scale(0.95);
+        }
+
+        #chat-header {
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #close-chat-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            width: 20px;
+            height: 20px;
+            line-height: 1;
+        }
+        
+        #chatbox {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #fdfdff;
+            scroll-behavior: smooth;
+        }
+
+        #chat-input-container {
+            padding: 10px 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+        }
+
+        #chatInput {
+            flex-grow: 1;
+            margin-bottom: 0;
+        }
+
+        #sendButton {
+            width: 100px;
+            padding: 10px;
+            margin-top: 0;
+            font-size: 1rem;
+            white-space: nowrap;
+        }
+
+        /* Mobile specific styling for full-screen chat */
+        @media (max-width: 600px) {
+            #floating-chat-widget {
+                bottom: 0;
+                right: 0;
+                width: 100vw;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+            #chat-header {
+                border-radius: 0;
+            }
+            #chat-toggle-button {
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>이산확률변수의 기댓값과 표준편차</h1>
+
+        <!-- Section 1: 개념 도입: 평균 계산의 확률적 변환 (점수 사례) -->
+        <div class="card">
+            <h2>1. 💡 개념 도입: 평균 계산의 새로운 시각</h2>
+            <p>
+                10명 학급의 수학 점수 분포를 가정합니다: 40점(3명), 50점(5명), 60점(2명)
+            </p>
+            
+            <h3>(1) 전통적인 평균 계산 (총합/총인원)</h3>
+            <p>
+                이 반 학생들의 평균을 구하는 방법은 점수의 총합을 학생 수(10명)로 나누는 것입니다. 
+                <br>
+                점수의 총합 계산: <span class="math-expr">(40 x 3) + (50 x 5) + (60 x 2) = 120 + 250 + 120 = 490</span>점
+                <br>
+                학생 수의 총합은 <span class="math-expr">3 + 5 + 2 = 10</span>명입니다.
+                <br>
+                평균 점수는 <span class="math-expr">490 / 10 = 49</span>점 입니다.
+            </p>
+
+            <h3>(2) 평균 계산 방식을 확률적 관점으로 변환</h3>
+            <p>
+                기존 계산식을 다음과 같이 재배열합니다:
+            </p>
+            <div class="formula-display">
+                <span class="math-expr">40 x (3/10) + 50 x (5/10) + 60 x (2/10)</span>
+            </div>
+            
+            <p>
+                이 두 식은 본질적으로 동일하며, 단지 쓰는 방법만 바꾼 것입니다. 
+            </p>
+
+            <h3>확률적 해석 도입</h3>
+            <p>
+                주목해야 할 부분은 <span class="math-expr">3/10, 5/10, 2/10</span> 값들입니다.
+                <br>
+                <span class="math-expr">3/10</span>은 10명 중 임의로 1명을 뽑았을 때 그 학생이 40점을 맞았을 **확률**을 의미합니다.
+                <br>
+                따라서 평균은 **(점수) x (해당 점수를 받을 확률)**을 모두 더하여 계산됩니다.
+            </p>
+        </div>
+
+        <!-- Section 2: 기댓값 E(X)의 정의와 공식화 -->
+        <div class="card">
+            <h2>2. 🎯 기댓값 E(X)의 정의와 공식화</h2>
+            
+            <h3>(1) 기댓값과 평균의 차이점</h3>
+            <p>
+                <strong>기댓값 E(X)</strong>은 말 그대로 기대할 수 있는 값을 의미하며, 확률적 관점에서 계산된 **평균**입니다. 
+            </p>
+            
+            <h3>(2) 기댓값 개념이 필요한 상황 (통계적 추정)</h3>
+            <p>
+                만약 수많은 학생(예: 5만 명)이 시험을 봤을 때, 모든 데이터를 집계하는 대신 표본(Sample)을 추출하여 전체 평균을 추정해야 할 경우가 있습니다.
+                <br>
+                예를 들어 100명 중 10명을 임의로 추출하여 점수를 봤더니 40점(3명), 50점(5명), 60점(2명)이 나왔다고 가정합니다. 이때 <span class="math-expr">3/10, 5/10, 2/10</span>는 100명 전체에서 해당 점수를 맞을 학생의 가능성(**확률**)을 나타내는 값으로 해석됩니다.
+                <br>
+                즉, 100명 중 약 30%가 40점을 맞을 것으로 **기대**할 수 있다는 의미이며, 이렇게 확률 개념을 동반하여 구한 평균이 바로 **기댓값**입니다.
+            </p>
+            
+            <p>
+                **기댓값의 표기법:** <span class="math-expr">E(X)</span>로 표기하며, 평균(Mean)을 의미하는 <span class="math-expr">m</span>을 사용하여 <span class="math-expr">E(X) = m</span>로 나타내기도 합니다.
+            </p>
+            
+            <h3>(3) 이산확률변수의 기댓값 공식화</h3>
+            <p>
+                확률 변수가 가질 수 있는 값이 x1부터 xn이고, 그에 해당하는 확률 값이 p1부터 pn일 때, 기댓값 E(X)는 다음과 같이 계산됩니다. 
+                <br>
+                기댓값을 구할 때는 확률 변수 (점수)에 그 값이 나올 확률 값을 곱한 후, 이 값들을 모두 더해주면 됩니다.
+            </p>
+            <div class="formula-display">
+                <strong>E(X) = m</strong> <span class="math-expr">= x1 p1 + x2 p2 + ... + xn pn</span>
+                <br>
+                기호로는 <span class="math-expr">&Sigma;(i=1~n) xi pi</span> 로 표현됩니다. (여기서 <span class="math-expr">&Sigma;</span>는 **시그마 대문자** 기호입니다.)
+            </div>
+
+            <h3>(4) 분산 V(X)와 표준편차 σ(X)</h3>
+            <p>
+                **분산 V(X)**: 평균(<span class="math-expr">m</span>)으로부터 확률변수가 얼마나 퍼져있는지 측정하는 값입니다. <span class="math-expr">V(X) = E((X - m)&sup2;)</span>
+            </p>
+            <p>
+                **표준편차 σ(X)**: 분산의 양의 제곱근입니다. <span class="math-expr">&sigma;(X) = &radic;V(X)</span>.
+            </p>
+
+            <canvas id="conceptCanvas" width="900" height="300"></canvas>
+            <div style="text-align: center; margin-top: 10px; font-size: 0.9rem; color: #555;">
+                <span style="color: green; font-weight: bold;">[초록색]</span> 표준편차 <span class="math-expr">&sigma;</span>(X)가 **작음** (밀집) vs. 
+                <span style="color: red; font-weight: bold;">[빨간색]</span> 표준편차 <span class="math-expr">&sigma;</span>(X)가 **큼** (분산)
+            </div>
+        </div>
+
+        <!-- Section 3: 기댓값 계산 연습 2: 제비뽑기와 의사결정 -->
+        <div class="card">
+            <h2>3. 🎰 기댓값 계산 연습: 제비뽑기와 의사결정</h2>
+            <p>
+                총 10개의 제비가 있으며, 1등(1개), 2등(2개), 3등(3개), 꽝(4개)이 들어 있습니다.
+                상금을 확률 변수 X라고 할 때, 각 등수별 확률은 다음과 같습니다.
+            </p>
+            
+            <table class="data-table">
+                <thead>
+                    <tr><th>확률변수 X (상금, 만원)</th><th>1,000</th><th>200</th><th>50</th><th>0</th></tr>
+                </thead>
+                <tbody>
+                    <tr><th>확률 P(X=x)</th><th>1/10</th><th>2/10</th><th>3/10</th><th>4/10</th></tr>
+                </tbody>
+            </table>
+
+            <h3>기댓값 계산</h3>
+            <p>
+                E(X) <span class="math-expr">= (1000 x 1/10) + (200 x 2/10) + (50 x 3/10) + (0 x 4/10)</span>
+                <br>
+                E(X) <span class="math-expr">= 100 + 40 + 15 + 0 = 155</span>만 원
+            </p>
+            
+            <div class="formula-display" style="background-color: #f7e6e6; border-left-color: red;">
+                <strong>기댓값을 이용한 의사결정:</strong>
+                <br>
+                참가비가 <span class="math-expr">155</span>만 원보다 많다면 (예: <span class="math-expr">200</span>만 원): 이 도박에 참가해서는 안 됩니다. 기대되는 값보다 더 많은 비용을 지불하기 때문입니다. 
+                <br>
+                참가비가 <span class="math-expr">155</span>만 원보다 적다면 (예: <span class="math-expr">100</span>만 원): 해볼 만합니다. 기대값보다 적은 비용으로 참여할 수 있기 때문입니다.
+            </div>
+        </div>
+
+
+        <!-- Section 4: 인터랙티브 실습 (큰 수의 법칙) -->
+        <div class="card" id="diceSimulationContainer">
+            <h2>4. 🎲 큰 수의 법칙 체험 (인터랙티브 주사위)</h2>
+            <p>
+                주사위 던지기를 반복하면서 '현재 평균'이 이론적인 **기댓값 3.5**에 수렴하는 과정을 눈으로 확인해 보세요!
+            </p>
+            
+            <button class="btn" id="rollDiceBtn">주사위 던지기! 🎲</button>
+            
+            <!-- 주사위 굴림 모션 오버레이 -->
+            <div id="diceOverlay">...</div>
+
+            <div class="formula-display">
+                현재 평균 E(X) 계산식: <span id="meanFormula">E(X) = &Sigma; (값 x 확률) = (1 x P(1) + 2 x P(2) + ... + 6 x P(6))</span>
+            </div>
+
+            <div class="result-stats">
+                <div class="stat-item">
+                    <div class="stat-label">총 시도 횟수 (N)</div>
+                    <div class="stat-value" id="trialCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">현재 평균 E(X) = m</div>
+                    <div class="stat-value" id="currentMean">--</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">현재 표준편차 σ(X)</div>
+                    <div class="stat-value" id="currentStdDev">--</div>
+                </div>
+            </div>
+
+            <canvas id="diceCanvas" width="900" height="350"></canvas>
+            <div style="text-align: center; margin-top: 10px; font-size: 0.9rem; color: #555;">
+                <span style="color: red; font-weight: bold;">[빨간 선]</span> 이론적 기댓값 (3.5) &nbsp; | &nbsp; 
+                <span style="color: blue; font-weight: bold;">[파란 선]</span> 현재 평균
+            </div>
+        </div>
+
+        <!-- Section 5: 분산/표준편차 공식 및 연습 (교과서 '스스로 확인하기') -->
+        <div class="card">
+            <h2>5. 📝 분산 V(X) 계산 연습 (스스로 확인하기)</h2>
+            
+            <h3>분산의 계산 공식</h3>
+            <p>
+                **분산 V(X) 계산 공식**: <span class="math-expr">V(X) = E(X&sup2;) - m&sup2;</span> <br>
+                (분산은 제곱의 기댓값에서 기댓값의 제곱을 뺀 값과 같습니다.)
+            </p>
+
+            <h3>교과서 연습 문제</h3>
+            <p>
+                확률변수 X의 확률분포표: X=1(<span class="math-expr">P=1/4</span>), X=2(<span class="math-expr">P=1/2</span>), X=3(<span class="math-expr">P=1/4</span>)일 때,
+                아래 빈칸을 채워 분산 V(X)와 표준편차 <span class="math-expr">&sigma;</span>(X)를 구해 보세요.
+            </p>
+
+            <div class="practice-input-group" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
+                <label for="practiceE">E(X) = m =</label>
+                <input type="number" id="practiceE" placeholder="정답 (2)" step="0.1" style="flex: 1;">
+            </div>
+             <div class="practice-input-group" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
+                <label for="practiceE2">E(X&sup2;) =</label>
+                <input type="number" id="practiceE2" placeholder="정답 (4.5)" step="0.5" style="flex: 1;">
+            </div>
+            <div class="practice-input-group" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
+                <label for="practiceV">V(X) =</label>
+                <input type="number" id="practiceV" placeholder="정답 (0.5)" step="0.1" style="flex: 1;">
+            </div>
+            <button class="btn quiz-btn" id="checkPracticeBtn">정답 확인 및 풀이 보기</button>
+            <div class="quiz-feedback" id="practiceFeedback"></div>
+        </div>
+
+        <!-- Section 6: 최종 퀴즈 (염소 원자량) -->
+        <div class="card">
+            <h2>6. 💯 최종 점검: 염소 원자량 기댓값 E(X)</h2>
+            <p>
+                자연계 염소 원자는 원자량 35(<span class="math-expr">P=3/4</span>)와 원자량 37(<span class="math-expr">P=1/4</span>)로 존재합니다. 염소 원자량의 **기댓값 E(X) = m**은 얼마일까요?
+            </p>
+
+            <label for="quizAnswer" class="stat-label" style="display: block; margin-bottom: 5px;">정답 입력 (소수점 첫째 자리까지):</label>
+            <input type="number" id="quizAnswer" placeholder="예: 35.5" step="0.1">
+
+            <button class="btn quiz-btn" id="checkQuizBtn">정답 확인</button>
+            
+            <div class="quiz-feedback" id="quizFeedback"></div>
+        </div>
+        
+    </div>
+    
+    <!-- 8. Floating Chat Widget (화면 우측 하단에 고정되는 영역) -->
+    <div id="floating-chat-widget" class="closed">
+        <div id="chat-header">
+            🤖 AI 보조교사
+            <button id="close-chat-btn">X</button>
+        </div>
+        <div id="chatbox">
+             <!-- 초기 메시지 -->
+            <div class="message ai-message">
+                <div class="message-content">
+                    안녕하세요! 저는 여러분의 수학 학습을 돕는 AI 보조교사입니다. 기댓값이나 분산에 대해 궁금한 점이 있다면 언제든지 질문해 주세요. 😊
+                </div>
+            </div>
+        </div>
+        <div id="chat-input-container">
+            <input type="text" id="chatInput" placeholder="질문을 입력하세요 (예: 분산 공식이 2개인 이유가 뭐예요?)">
+            <button class="btn" id="sendButton">질문하기</button>
+        </div>
+    </div>
+    
+    <!-- 챗봇 토글 버튼 -->
+    <button id="chat-toggle-button">💬</button>
+
+    
+    <script>
+        // DOM 요소 참조
+        const conceptCanvas = document.getElementById('conceptCanvas');
+        const diceCanvas = document.getElementById('diceCanvas');
+        const rollDiceBtn = document.getElementById('rollDiceBtn');
+        const checkQuizBtn = document.getElementById('checkQuizBtn');
+        const quizAnswerInput = document.getElementById('quizAnswer');
+        const quizFeedbackDiv = document.getElementById('quizFeedback');
+        const trialCountEl = document.getElementById('trialCount');
+        const currentMeanEl = document.getElementById('currentMean');
+        const currentStdDevEl = document.getElementById('currentStdDev');
+        const checkPracticeBtn = document.getElementById('checkPracticeBtn');
+        const practiceFeedbackDiv = document.getElementById('practiceFeedback');
+        const meanFormulaEl = document.getElementById('meanFormula');
+        const diceOverlay = document.getElementById('diceOverlay');
+
+        // AI Chat DOM 참조
+        const floatingChatWidget = document.getElementById('floating-chat-widget');
+        const chatToggleBtn = document.getElementById('chat-toggle-button');
+        const closeChatBtn = document.getElementById('close-chat-btn');
+        const chatbox = document.getElementById('chatbox');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // --- 1. Canvas 1: 정적 개념 시각화 ---
+
+        function drawConceptCanvas() {
+            const ctx = conceptCanvas.getContext('2d');
+            const W = conceptCanvas.width;
+            const H = conceptCanvas.height;
+            const PADDING = 40;
+            const BAR_WIDTH = 20;
+            const NUM_POINTS = 10;
+            const MU = 0.5; // 평균 위치 (상대적)
+            const X_START = PADDING;
+            const X_END = W - PADDING;
+            const X_RANGE = X_END - X_START;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // X축
+            ctx.beginPath();
+            ctx.moveTo(X_START, H - PADDING);
+            ctx.lineTo(X_END, H - PADDING);
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 평균(m) 표시
+            const muX = X_START + MU * X_RANGE;
+            ctx.fillStyle = '#333';
+            ctx.fillRect(muX - 2, H - PADDING - 15, 4, 30);
+            ctx.font = '16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('m', muX, H - 5);
+
+            // 가상 분포 데이터
+            const distA = [1, 2, 5, 8, 10, 8, 5, 2, 1, 0.5]; // 낮은 시그마 (초록)
+            const distB = [2, 3, 3, 4, 5, 5, 4, 3, 3, 2];   // 높은 시그마 (빨강)
+
+            const MAX_H = Math.max(10, ...distA, ...distB);
+            const HEIGHT_RANGE = H - 2 * PADDING;
+
+            // 분포 B (높은 σ) - 빨간색
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.4)'; 
+            for (let i = 0; i < NUM_POINTS; i++) {
+                const x = X_START + (i / (NUM_POINTS - 1)) * X_RANGE;
+                const h = (distB[i] / MAX_H) * HEIGHT_RANGE * 0.8;
+                ctx.fillRect(x - BAR_WIDTH / 2 - 5, H - PADDING - h, BAR_WIDTH, h);
+            }
+
+            // 분포 A (낮은 σ) - 초록색
+            ctx.fillStyle = 'rgba(0, 128, 0, 0.8)';
+            for (let i = 0; i < NUM_POINTS; i++) {
+                const x = X_START + (i / (NUM_POINTS - 1)) * X_RANGE;
+                const h = (distA[i] / MAX_H) * HEIGHT_RANGE * 0.9;
+                ctx.fillRect(x - BAR_WIDTH / 2, H - PADDING - h, BAR_WIDTH, h);
+            }
+        }
+
+        // --- 2. Canvas 2: 인터랙티브 실습 (큰 수의 법칙) ---
+
+        let diceData = []; 
+        let diceCounts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
+        const THEORETICAL_MEAN = 3.5;
+
+        // 통계 계산 함수
+        function calculateStats() {
+            const n = diceData.length;
+            if (n === 0) return { mean: 0, stdDev: 0 };
+
+            // 1. 평균 (Sample Mean)
+            const sumX = diceData.reduce((acc, val) => acc + val, 0);
+            const sampleMean = sumX / n;
+
+            // 2. 분산 및 표준편차
+            let sumX2Pi = 0;
+            const values = [1, 2, 3, 4, 5, 6];
+            
+            for (const x of values) {
+                const p = diceCounts[x] / n;
+                sumX2Pi += x * x * p; // E(X^2) 
+            }
+
+            const variance = sumX2Pi - (sampleMean * sampleMean);
+            const stdDev = Math.sqrt(Math.max(0, variance)); 
+
+            return { 
+                mean: sampleMean, 
+                stdDev: stdDev 
+            };
+        }
+        
+        // 주사위 평균 공식 업데이트 함수
+        function updateMeanFormula(n) {
+            if (n === 0) {
+                meanFormulaEl.innerHTML = `E(X) = &Sigma; (값 x 확률) = (1 x P(1) + 2 x P(2) + ... + 6 x P(6))`;
+                return;
+            }
+            
+            let formulaParts = [];
+            const values = [1, 2, 3, 4, 5, 6];
+            
+            for (const x of values) {
+                const count = diceCounts[x];
+                if (count > 0) {
+                    formulaParts.push(`${x} x (${count}/${n})`);
+                }
+            }
+            
+            let formulaText = formulaParts.join(' + ');
+            
+            // 평균 계산 과정이 길어지면 줄임말로 표시
+            if (formulaParts.length > 4) {
+                formulaText = formulaParts.slice(0, 2).join(' + ') + ` + <span class="math-expr">...</span> + ${formulaParts[formulaParts.length - 1]}`;
+            }
+
+            // 시그마 기호는 HTML 엔티티 (&Sigma;) 사용
+            meanFormulaEl.innerHTML = `<span class="math-expr">E(X) &asymp; &Sigma; xi pi</span> = <span class="math-expr">${formulaText}</span>`;
+        }
+
+
+        // 통계 결과 업데이트 및 Canvas 2 그리기
+        function updateDiceSimulation() {
+            const stats = calculateStats();
+            const n = diceData.length;
+
+            trialCountEl.textContent = n;
+            currentMeanEl.textContent = stats.mean.toFixed(3);
+            currentStdDevEl.textContent = stats.stdDev.toFixed(3);
+
+            drawDiceDistribution(n, stats.mean);
+            updateMeanFormula(n);
+        }
+        
+        // 주사위 굴림 모션 함수
+        function rollDiceMotion(callback) {
+            rollDiceBtn.disabled = true;
+            diceOverlay.style.display = 'flex';
+            
+            const rollText = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+            let rollCount = 0;
+            let lastRollValue = 0;
+
+            // 실제 주사위 굴림 값 저장
+            lastRollValue = Math.floor(Math.random() * 6) + 1;
+            diceData.push(lastRollValue);
+            diceCounts[lastRollValue]++;
+
+            const interval = setInterval(() => {
+                const randomDie = rollText[Math.floor(Math.random() * rollText.length)];
+                diceOverlay.textContent = randomDie;
+                rollCount++;
+
+                if (rollCount > 10) { // 10번 깜빡인 후 정지
+                    clearInterval(interval);
+                    // 실제 결과값으로 최종 주사위 모습 표시
+                    const finalRollIndex = lastRollValue - 1;
+                    diceOverlay.textContent = rollText[finalRollIndex]; 
+                    
+                    // 0.5초 후 사라지게
+                    setTimeout(() => {
+                        diceOverlay.style.display = 'none';
+                        rollDiceBtn.disabled = false;
+                        callback(); // 굴림 완료 후 실제 통계 업데이트
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        // 주사위 던지기 이벤트 핸들러
+        function handleRollDice() {
+            rollDiceMotion(() => {
+                updateDiceSimulation();
+            });
+        }
+
+        // Canvas 2 분포 그리기 함수
+        function drawDiceDistribution(n, sampleMean) {
+            const ctx = diceCanvas.getContext('2d');
+            const W = diceCanvas.width;
+            const H = diceCanvas.height;
+            const PADDING_V = 40;
+            const PADDING_H = 30;
+            const CHART_H = H - 2 * PADDING_V;
+            const CHART_W = W - 2 * PADDING_H;
+            const BAR_GAP = 5;
+            const BAR_W = (CHART_W / 6) - BAR_GAP;
+
+            ctx.clearRect(0, 0, W, H);
+
+            const maxCount = Math.max(...Object.values(diceCounts));
+            const yMax = maxCount > 0 ? maxCount : 1;
+            
+            // Y축 (최대 카운트)
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(PADDING_H, PADDING_V);
+            ctx.lineTo(PADDING_H, H - PADDING_V);
+            ctx.lineTo(W - PADDING_H, H - PADDING_V);
+            ctx.stroke();
+
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#333';
+            
+            // 막대 그래프 및 X축 레이블
+            for (let i = 1; i <= 6; i++) {
+                const count = diceCounts[i];
+                const barHeight = (count / yMax) * CHART_H;
+                const x = PADDING_H + (i - 1) * (BAR_W + BAR_GAP) + BAR_GAP;
+
+                // 막대 그리기
+                ctx.fillStyle = 'rgba(0, 123, 255, 0.7)';
+                ctx.fillRect(x, H - PADDING_V - barHeight, BAR_W, barHeight);
+                
+                // 막대 상단 카운트 표시
+                ctx.fillStyle = '#333';
+                if (count > 0) {
+                     ctx.fillText(count, x + BAR_W / 2, H - PADDING_V - barHeight - 5);
+                }
+
+                // X축 레이블 
+                ctx.fillText(i, x + BAR_W / 2, H - PADDING_V + 18);
+            }
+            
+            // Y축 레이블 (최대 카운트)
+            ctx.textAlign = 'right';
+            ctx.fillText(yMax, PADDING_H - 5, PADDING_V + 5);
+
+            // --- 큰 수의 법칙 시각화 ---
+            
+            // 이론적 기댓값 (3.5) - 빨간 선
+            const theoreticalX = PADDING_H + (THEORETICAL_MEAN - 1) * (BAR_W + BAR_GAP) + BAR_GAP + BAR_W / 2;
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(theoreticalX, H - PADDING_V);
+            ctx.lineTo(theoreticalX, PADDING_V);
+            ctx.stroke();
+
+            // 현재 평균 (sampleMean) - 파란 선
+            if (n > 0) {
+                const sampleX = PADDING_H + (sampleMean - 1) * (BAR_W + BAR_GAP) + BAR_GAP + BAR_W / 2;
+                ctx.strokeStyle = 'blue';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(sampleX, H - PADDING_V);
+                ctx.lineTo(sampleX, PADDING_V);
+                ctx.stroke();
+            }
+        }
+
+        // --- 3. 연습 문제 풀이 로직 (스스로 확인하기) ---
+
+        function checkPractice() {
+            const E = parseFloat(document.getElementById('practiceE').value);
+            const E2 = parseFloat(document.getElementById('practiceE2').value);
+            const V = parseFloat(document.getElementById('practiceV').value);
+            
+            const correctE = 2.0;
+            const correctE2 = 4.5;
+            const correctV = 0.5;
+            const correctSigma = Math.sqrt(0.5);
+
+            let isCorrect = true;
+            let feedbackText = "<strong>풀이 과정:</strong><br>";
+
+            if (Math.abs(E - correctE) < 0.001) {
+                feedbackText += `<span style="color: green;">✔ E(X) = 1 x 1/4 + 2 x 1/2 + 3 x 1/4 = ${correctE}</span><br>`;
+            } else {
+                feedbackText += `<span style="color: red;">✘ E(X) 정답: ${correctE} (계산 오류)</span><br>`;
+                isCorrect = false;
+            }
+
+            if (Math.abs(E2 - correctE2) < 0.001) {
+                feedbackText += `<span style="color: green;">✔ E(X&sup2;) = 1&sup2; x 1/4 + 2&sup2; x 1/2 + 3&sup2; x 1/4 = ${correctE2}</span><br>`;
+            } else {
+                feedbackText += `<span style="color: red;">✘ E(X&sup2;) 정답: ${correctE2} (계산 오류)</span><br>`;
+                isCorrect = false;
+            }
+
+            if (Math.abs(V - correctV) < 0.001) {
+                feedbackText += `<span style="color: green;">✔ V(X) = E(X&sup2;) - m&sup2; = 4.5 - 2&sup2; = ${correctV}</span><br>`;
+            } else {
+                feedbackText += `<span style="color: red;">✘ V(X) 정답: ${correctV} (공식 적용 오류)</span><br>`;
+                isCorrect = false;
+            }
+            
+            // 표준편차 표시도 일반 텍스트와 HTML 엔티티 조합으로 변경
+            feedbackText += `<br>따라서 표준편차 <span class="math-expr">&sigma;</span>(X) = <span class="math-expr">&radic;0.5</span> &asymp; ${correctSigma.toFixed(4)}`;
+
+
+            practiceFeedbackDiv.className = 'quiz-feedback';
+            if (isCorrect) {
+                practiceFeedbackDiv.classList.add('correct');
+                practiceFeedbackDiv.innerHTML = "<strong>모든 계산이 정확합니다!</strong> " + feedbackText;
+            } else {
+                practiceFeedbackDiv.classList.add('incorrect');
+                practiceFeedbackDiv.innerHTML = "<strong>일부 계산이 틀렸습니다.</strong> 풀이 과정을 확인하세요.<br>" + feedbackText;
+            }
+        }
+
+
+        // --- 4. 최종 퀴즈 로직 (염소 원자량) ---
+
+        function checkQuizAnswer() {
+            const userAnswer = parseFloat(quizAnswerInput.value);
+            const correctAnswer = 35.5;
+            
+            quizFeedbackDiv.className = 'quiz-feedback';
+            quizFeedbackDiv.innerHTML = '';
+
+            if (isNaN(userAnswer)) {
+                quizFeedbackDiv.classList.add('incorrect');
+                quizFeedbackDiv.innerHTML = "정답을 숫자로 입력해 주세요.";
+                return;
+            }
+
+            if (Math.abs(userAnswer - correctAnswer) < 0.001) { 
+                quizFeedbackDiv.classList.add('correct');
+                quizFeedbackDiv.innerHTML = `
+                    <strong>🎉 정답입니다!</strong><br>
+                    풀이: E(X) = m = (35 x 3/4) + (37 x 1/4) = (105/4) + (37/4) = 35.5
+                `;
+            } else {
+                quizFeedbackDiv.classList.add('incorrect');
+                // 시그마 기호는 HTML 엔티티 (&Sigma;)로 변경
+                quizFeedbackDiv.innerHTML = "다시 시도해 보세요. 각 원자량에 확률을 곱하는 기댓값 공식 (<span class='math-expr'>E(X) = &Sigma; xi pi</span>)을 떠올리세요!";
+            }
+        }
+
+        // --- 5. AI 보조교사 (Gemini API) 로직 ---
+        const apiKey = "AIzaSyAl2vvp8QTFE_EULTu0qM0UZyeo9R_yDdU"; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        
+        // **강력하게 강화된 시스템 프롬프트: 모든 LaTeX/MathJax/복잡 기호 절대 금지**
+        const systemPrompt = `
+            You are a friendly, patient, and knowledgeable AI teaching assistant specializing in high school probability and statistics. Always answer the user's questions clearly, using Korean.
+            
+            **CRUCIAL RULE: ABSOLUTELY DO NOT USE ANY LATEX OR MATHJAX SYNTAX OR DELIMITERS, INCLUDING $, \\( \\), \\begin{equation}..., or commands like \\frac, \\cdot, \\text, \\times, \\Sigma.** Instead, you MUST use only standard Korean text, simple symbols (like the letter 'x' for multiplication, '/' or '(분자/분모)' for fractions, '+' for addition, '제곱' for powers), or HTML entities (like '&times;' for multiplication, '&Sigma;' for summation, '&radic;' for square root).
+            
+            Your output MUST be plain, conversational Korean text. For mathematical explanations, use clear, step-by-step Korean language and simple examples related to discrete probability variables (like dice, lotteries, or scores). Keep responses conversational and encouraging.
+        `;
+        let chatHistory = [];
+        let isGenerating = false;
+        let lastUserMessageId = 0; // for managing history in case of error
+
+        // 지수 백오프를 이용한 fetch 함수
+        async function fetchWithBackoff(url, options, maxRetries = 5) {
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+                    if (response.status === 429 && attempt < maxRetries - 1) { // Rate Limit
+                        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    throw new Error(`API response failed with status ${response.status}`);
+                } catch (error) {
+                    if (attempt === maxRetries - 1) {
+                        throw error;
+                    }
+                    const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        // 메시지를 UI에 추가하는 함수
+        function addMessage(role, text) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', role === 'user' ? 'user-message' : 'ai-message');
+            
+            const contentElement = document.createElement('div');
+            contentElement.classList.add('message-content');
+            
+            // 텍스트를 마크다운 형식으로 파싱하여 HTML로 변환
+            contentElement.innerHTML = parseMarkdown(text); 
+            
+            messageElement.appendChild(contentElement);
+            chatbox.appendChild(messageElement);
+            chatbox.scrollTop = chatbox.scrollHeight; // 스크롤 하단으로 이동
+            
+            return messageElement;
+        }
+
+        // 로딩 메시지 추가/제거
+        function addLoadingMessage() {
+            const loadingMessage = addMessage('ai', '');
+            loadingMessage.id = 'loadingMessage';
+            loadingMessage.querySelector('.message-content').innerHTML = `
+                <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
+            `;
+        }
+
+        function removeLoadingMessage() {
+            const loadingEl = document.getElementById('loadingMessage');
+            if (loadingEl) {
+                loadingEl.remove();
+            }
+        }
+        
+        // 간단한 마크다운 파싱 (볼드체, 줄바꿈)
+        function parseMarkdown(text) {
+            let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // **볼드체**
+            html = html.replace(/\n/g, '<br>'); // 줄바꿈
+            return html;
+        }
+
+
+        // AI에게 질문을 보내는 함수
+        async function sendMessage() {
+            if (isGenerating) return;
+            const query = chatInput.value.trim();
+            if (!query) return;
+
+            // 1. UI에 사용자 메시지 추가
+            addMessage('user', query);
+            chatInput.value = '';
+            
+            // 2. API 호출 준비
+            lastUserMessageId = chatHistory.length; // Save index before pushing
+            chatHistory.push({ role: "user", parts: [{ text: query }] });
+            isGenerating = true;
+            sendButton.disabled = true;
+            addLoadingMessage();
+
+            const payload = {
+                contents: chatHistory,
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+            
+            try {
+                const response = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                let aiResponseText = "죄송해요, 답변을 생성하는 데 문제가 발생했습니다. 다시 시도해 주세요.";
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    aiResponseText = candidate.content.parts[0].text;
+                    // 3. 응답을 채팅 기록에 추가
+                    chatHistory.push({ role: "model", parts: [{ text: aiResponseText }] });
+                }
+
+                // 4. UI 업데이트
+                removeLoadingMessage();
+                addMessage('model', aiResponseText);
+
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                removeLoadingMessage();
+                addMessage('model', "죄송합니다. 네트워크 문제 또는 서버 오류로 인해 답변을 가져올 수 없습니다. 다시 시도해 주세요.");
+                
+                // 에러 발생 시 히스토리에서 마지막 사용자 메시지를 제거 (재시도를 위해)
+                if (chatHistory.length > lastUserMessageId) {
+                    chatHistory.pop(); 
+                }
+            } finally {
+                isGenerating = false;
+                sendButton.disabled = false;
+            }
+        }
+        
+        // --- 6. 초기화 및 반응형 처리 ---
+
+        // 캔버스 크기 조정 및 그리기
+        function initCanvasSize() {
+            // 부모 요소의 너비를 확인하여 캔버스 너비 설정
+            const parentWidth = conceptCanvas.parentElement.clientWidth;
+            
+            // Canvas 높이 설정 (가로 폭에 맞춰 비율 유지)
+            // 최소 250px, 최대 400px을 넘지 않도록 설정
+            const conceptHeight = Math.min(300, Math.max(250, 0.4 * parentWidth)); 
+            const diceHeight = Math.min(400, Math.max(300, 0.5 * parentWidth));
+
+            conceptCanvas.width = parentWidth;
+            conceptCanvas.height = conceptHeight;
+            diceCanvas.width = parentWidth;
+            diceCanvas.height = diceHeight;
+
+            // 주사위 오버레이 크기도 캔버스와 동일하게 설정
+            diceOverlay.style.height = `${diceHeight}px`;
+
+            drawConceptCanvas();
+            drawDiceDistribution(diceData.length, calculateStats().mean);
+        }
+        
+        // 챗 위젯 토글 함수
+        function toggleChatWidget() {
+            floatingChatWidget.classList.toggle('closed');
+            if (!floatingChatWidget.classList.contains('closed')) {
+                // 채팅창 열 때 스크롤 및 포커스
+                chatbox.scrollTop = chatbox.scrollHeight;
+                chatInput.focus();
+                // 챗봇 버튼을 닫기 버튼 모양으로 변경 (X)
+                chatToggleBtn.innerHTML = 'X';
+            } else {
+                 // 챗봇 버튼을 다시 채팅 아이콘으로 변경
+                chatToggleBtn.innerHTML = '💬';
+            }
+        }
+
+        // 초기화 함수
+        function init() {
+            initCanvasSize(); 
+            updateDiceSimulation(); 
+            floatingChatWidget.classList.add('closed'); // 초기에는 닫힌 상태로 시작
+        }
+
+
+        // --- 7. 이벤트 리스너 연결 및 초기 실행 ---
+
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+
+            // 이벤트 연결
+            rollDiceBtn.addEventListener('click', handleRollDice);
+            checkQuizBtn.addEventListener('click', checkQuizAnswer);
+            checkPracticeBtn.addEventListener('click', checkPractice);
+            
+            // AI 챗봇 이벤트 연결
+            chatToggleBtn.addEventListener('click', toggleChatWidget);
+            closeChatBtn.addEventListener('click', toggleChatWidget);
+            sendButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            // 반응형 리사이즈 처리 (iPad/모바일 환경에서 크기 변경 시 대응)
+            window.addEventListener('resize', initCanvasSize);
+            // 아이패드 화면 방향 전환(orientationchange)에도 대응
+            window.addEventListener('orientationchange', initCanvasSize); 
+        });
+        
+    </script>
+</body>
+</html>
