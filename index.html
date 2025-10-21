@@ -532,11 +532,67 @@
                 참가비가 <span class="math-expr">155</span>만 원보다 적다면 (예: <span class="math-expr">100</span>만 원): 해볼 만합니다. 기대값보다 적은 비용으로 참여할 수 있기 때문입니다.
             </div>
         </div>
+        
+        <!-- Section 4: 간단한 적용 문제 추가 (인터랙티브) -->
+        <div class="card">
+            <h2>4. 🧩 간단한 확률변수 적용 문제</h2>
+            
+            <h3>(1) 주사위 2개 합의 기댓값 E(X)</h3>
+            <p>
+                서로 다른 두 개의 주사위를 던져 나오는 눈의 합을 확률변수 X라고 할 때, 기댓값 E(X)를 계산해 봅시다.
+            </p>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>X (합)</th>
+                        <th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th>
+                        <th>8</th><th>9</th><th>10</th><th>11</th><th>12</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>P(X=x)</th>
+                        <th>1/36</th><th>2/36</th><th>3/36</th><th>4/36</th><th>5/36</th><th>6/36</th>
+                        <th>5/36</th><th>4/36</th><th>3/36</th><th>2/36</th><th>1/36</th>
+                    </tr>
+                </tbody>
+            </table>
+            <label for="diceSumAnswer" class="stat-label" style="display: block; margin-top: 15px; margin-bottom: 5px;">기댓값 E(X)를 입력하세요:</label>
+            <input type="number" id="diceSumAnswer" placeholder="정답을 입력" step="1">
+            <button class="btn quiz-btn" id="checkDiceSumBtn">정답 확인</button>
+            <div class="quiz-feedback" id="diceSumFeedback"></div>
+            
+            <h3 style="margin-top: 30px;">(2) 동전 3회 던지기 상금의 기댓값 E(상금)</h3>
+            <p>
+                동전을 3회 던져 앞면(H)이 나오는 횟수를 확률변수 X라고 합니다. 상금은 (X의 제곱) x 100원일 때, 기대되는 상금의 기댓값 E(상금)을 구합니다. (상금 = <span class="math-expr">Y = 100X&sup2;</span>)
+            </p>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>앞면 횟수 X</th><th>0</th><th>1</th><th>2</th><th>3</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>상금 Y (<span class="math-expr">100X&sup2;</span>, 원)</th>
+                        <th>0</th><th>100</th><th>400</th><th>900</th>
+                    </tr>
+                    <tr>
+                        <th>확률 P(X=x)</th>
+                        <th>1/8</th><th>3/8</th><th>3/8</th><th>1/8</th>
+                    </tr>
+                </tbody>
+            </table>
+            <label for="coinPrizeAnswer" class="stat-label" style="display: block; margin-top: 15px; margin-bottom: 5px;">기대되는 상금(원)을 입력하세요:</label>
+            <input type="number" id="coinPrizeAnswer" placeholder="정답을 입력" step="1">
+            <button class="btn quiz-btn" id="checkCoinPrizeBtn">정답 확인</button>
+            <div class="quiz-feedback" id="coinPrizeFeedback"></div>
+        </div>
 
 
-        <!-- Section 4: 인터랙티브 실습 (큰 수의 법칙) -->
+        <!-- Section 5: 인터랙티브 실습 (큰 수의 법칙) -->
         <div class="card" id="diceSimulationContainer">
-            <h2>4. 🎲 큰 수의 법칙 체험 (인터랙티브 주사위)</h2>
+            <h2>5. 🎲 큰 수의 법칙 체험 (인터랙티브 주사위)</h2>
             <p>
                 주사위 던지기를 반복하면서 '현재 평균'이 이론적인 **기댓값 3.5**에 수렴하는 과정을 눈으로 확인해 보세요!
             </p>
@@ -572,9 +628,9 @@
             </div>
         </div>
 
-        <!-- Section 5: 분산/표준편차 공식 및 연습 (교과서 '스스로 확인하기') -->
+        <!-- Section 6: 분산/표준편차 공식 및 연습 (교과서 '스스로 확인하기') -->
         <div class="card">
-            <h2>5. 📝 분산 V(X) 계산 연습 (스스로 확인하기)</h2>
+            <h2>6. 📝 분산 V(X) 계산 연습 (스스로 확인하기)</h2>
             
             <h3>분산의 계산 공식</h3>
             <p>
@@ -604,9 +660,9 @@
             <div class="quiz-feedback" id="practiceFeedback"></div>
         </div>
 
-        <!-- Section 6: 최종 퀴즈 (염소 원자량) -->
+        <!-- Section 7: 최종 퀴즈 (염소 원자량) -->
         <div class="card">
-            <h2>6. 💯 최종 점검: 염소 원자량 기댓값 E(X)</h2>
+            <h2>7. 💯 최종 점검: 염소 원자량 기댓값 E(X)</h2>
             <p>
                 자연계 염소 원자는 원자량 35(<span class="math-expr">P=3/4</span>)와 원자량 37(<span class="math-expr">P=1/4</span>)로 존재합니다. 염소 원자량의 **기댓값 E(X) = m**은 얼마일까요?
             </p>
@@ -660,6 +716,15 @@
         const practiceFeedbackDiv = document.getElementById('practiceFeedback');
         const meanFormulaEl = document.getElementById('meanFormula');
         const diceOverlay = document.getElementById('diceOverlay');
+
+        // 신규 적용 문제 DOM 참조
+        const checkDiceSumBtn = document.getElementById('checkDiceSumBtn');
+        const diceSumAnswerInput = document.getElementById('diceSumAnswer');
+        const diceSumFeedbackDiv = document.getElementById('diceSumFeedback');
+        const checkCoinPrizeBtn = document.getElementById('checkCoinPrizeBtn');
+        const coinPrizeAnswerInput = document.getElementById('coinPrizeAnswer');
+        const coinPrizeFeedbackDiv = document.getElementById('coinPrizeFeedback');
+
 
         // AI Chat DOM 참조
         const floatingChatWidget = document.getElementById('floating-chat-widget');
@@ -919,8 +984,69 @@
             }
         }
 
-        // --- 3. 연습 문제 풀이 로직 (스스로 확인하기) ---
+        // --- 3. 신규 적용 문제 풀이 로직 ---
+        function checkDiceSum() {
+            const userAnswer = parseFloat(diceSumAnswerInput.value);
+            const correctAnswer = 7;
+            
+            diceSumFeedbackDiv.className = 'quiz-feedback';
+            diceSumFeedbackDiv.innerHTML = '';
 
+            if (isNaN(userAnswer)) {
+                diceSumFeedbackDiv.classList.add('incorrect');
+                diceSumFeedbackDiv.innerHTML = "정답을 숫자로 입력해 주세요.";
+                return;
+            }
+
+            if (Math.abs(userAnswer - correctAnswer) < 0.001) { 
+                diceSumFeedbackDiv.classList.add('correct');
+                diceSumFeedbackDiv.innerHTML = `
+                    <strong>🎉 정답입니다!</strong><br>
+                    <strong>풀이 과정:</strong>
+                    <div class="formula-display" style="text-align: left; margin-top: 10px;">
+                        E(X) <span class="math-expr">= 2x(1/36) + 3x(2/36) + ... + 12x(1/36)</span><br>
+                        E(X) <span class="math-expr">= (2+6+12+20+30+42+40+36+30+22+12) / 36</span><br>
+                        E(X) <span class="math-expr">= 252 / 36 = 7</span>
+                    </div>
+                `;
+            } else {
+                diceSumFeedbackDiv.classList.add('incorrect');
+                diceSumFeedbackDiv.innerHTML = "다시 시도해 보세요. 각 확률변수(눈의 합)에 해당하는 확률을 곱해서 모두 더해보세요.";
+            }
+        }
+
+        function checkCoinPrize() {
+            const userAnswer = parseFloat(coinPrizeAnswerInput.value);
+            const correctAnswer = 300;
+
+            coinPrizeFeedbackDiv.className = 'quiz-feedback';
+            coinPrizeFeedbackDiv.innerHTML = '';
+
+            if (isNaN(userAnswer)) {
+                coinPrizeFeedbackDiv.classList.add('incorrect');
+                coinPrizeFeedbackDiv.innerHTML = "정답을 숫자로 입력해 주세요.";
+                return;
+            }
+
+            if (Math.abs(userAnswer - correctAnswer) < 0.001) { 
+                coinPrizeFeedbackDiv.classList.add('correct');
+                coinPrizeFeedbackDiv.innerHTML = `
+                    <strong>🎉 정답입니다!</strong><br>
+                    <strong>풀이 과정:</strong>
+                    <div class="formula-display" style="text-align: left; margin-top: 10px;">
+                        E(Y) <span class="math-expr">= 0x(1/8) + 100x(3/8) + 400x(3/8) + 900x(1/8)</span><br>
+                        E(Y) <span class="math-expr">= (0+300+1200+900) / 8</span><br>
+                        E(Y) <span class="math-expr">= 2400 / 8 = 300</span>원
+                    </div>
+                `;
+            } else {
+                coinPrizeFeedbackDiv.classList.add('incorrect');
+                coinPrizeFeedbackDiv.innerHTML = "다시 시도해 보세요. 각 상금에 해당하는 확률을 곱해서 모두 더해보세요.";
+            }
+        }
+
+
+        // --- 4. 연습 문제 풀이 로직 (스스로 확인하기) ---
         function checkPractice() {
             const E = parseFloat(document.getElementById('practiceE').value);
             const E2 = parseFloat(document.getElementById('practiceE2').value);
@@ -970,8 +1096,7 @@
         }
 
 
-        // --- 4. 최종 퀴즈 로직 (염소 원자량) ---
-
+        // --- 5. 최종 퀴즈 로직 (염소 원자량) ---
         function checkQuizAnswer() {
             const userAnswer = parseFloat(quizAnswerInput.value);
             const correctAnswer = 35.5;
@@ -998,8 +1123,8 @@
             }
         }
 
-        // --- 5. AI 보조교사 (Gemini API) 로직 ---
-        const apiKey = "AIzaSyAl2vvp8QTFE_EULTu0qM0UZyeo9R_yDdU"; 
+        // --- 6. AI 보조교사 (Gemini API) 로직 ---
+        const apiKey = ""; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
         
         // **강력하게 강화된 시스템 프롬프트: 모든 LaTeX/MathJax/복잡 기호 절대 금지**
@@ -1140,7 +1265,7 @@
             }
         }
         
-        // --- 6. 초기화 및 반응형 처리 ---
+        // --- 7. 초기화 및 반응형 처리 ---
 
         // 캔버스 크기 조정 및 그리기
         function initCanvasSize() {
@@ -1187,7 +1312,7 @@
         }
 
 
-        // --- 7. 이벤트 리스너 연결 및 초기 실행 ---
+        // --- 8. 이벤트 리스너 연결 및 초기 실행 ---
 
         document.addEventListener('DOMContentLoaded', function() {
             init();
@@ -1196,6 +1321,10 @@
             rollDiceBtn.addEventListener('click', handleRollDice);
             checkQuizBtn.addEventListener('click', checkQuizAnswer);
             checkPracticeBtn.addEventListener('click', checkPractice);
+            
+            // 신규 적용 문제 이벤트 연결
+            checkDiceSumBtn.addEventListener('click', checkDiceSum);
+            checkCoinPrizeBtn.addEventListener('click', checkCoinPrize);
             
             // AI 챗봇 이벤트 연결
             chatToggleBtn.addEventListener('click', toggleChatWidget);
@@ -1216,3 +1345,4 @@
     </script>
 </body>
 </html>
+
