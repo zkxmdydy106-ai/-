@@ -646,15 +646,15 @@
 
             <div class="practice-input-group" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
                 <label for="practiceE">E(X) = m =</label>
-                <input type="number" id="practiceE" placeholder="정답을 입력" step="0.1" style="flex: 1;">
+                <input type="number" id="practiceE" placeholder="정답 (2)" step="0.1" style="flex: 1;">
             </div>
              <div class="practice-input-group" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
                 <label for="practiceE2">E(X&sup2;) =</label>
-                <input type="number" id="practiceE2" placeholder="정답을 입력" step="0.5" style="flex: 1;">
+                <input type="number" id="practiceE2" placeholder="정답 (4.5)" step="0.5" style="flex: 1;">
             </div>
             <div class="practice-input-group" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
                 <label for="practiceV">V(X) =</label>
-                <input type="number" id="practiceV" placeholder="정답을 입력" step="0.1" style="flex: 1;">
+                <input type="number" id="practiceV" placeholder="정답 (0.5)" step="0.1" style="flex: 1;">
             </div>
             <button class="btn quiz-btn" id="checkPracticeBtn">정답 확인 및 풀이 보기</button>
             <div class="quiz-feedback" id="practiceFeedback"></div>
@@ -668,7 +668,7 @@
             </p>
 
             <label for="quizAnswer" class="stat-label" style="display: block; margin-bottom: 5px;">정답 입력 (소수점 첫째 자리까지):</label>
-            <input type="number" id="quizAnswer" placeholder="예: 32.5" step="0.1">
+            <input type="number" id="quizAnswer" placeholder="예: 35.5" step="0.1">
 
             <button class="btn quiz-btn" id="checkQuizBtn">정답 확인</button>
             
@@ -1123,193 +1123,305 @@
             }
         }
 
-        // --- 6. AI 보조교사 (Gemini API) 로직 ---
-        const apiKey = "AIzaSyAl2vvp8QTFE_EULTu0qM0UZyeo9R_yDdU"; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-        
-        // **강력하게 강화된 시스템 프롬프트: 모든 LaTeX/MathJax/복잡 기호 절대 금지**
-        const systemPrompt = `
-            You are a friendly, patient, and knowledgeable AI teaching assistant specializing in high school probability and statistics. Always answer the user's questions clearly, using Korean.
-            
-            **CRUCIAL RULE: ABSOLUTELY DO NOT USE ANY LATEX OR MATHJAX SYNTAX OR DELIMITERS, INCLUDING $, \\( \\), \\begin{equation}..., or commands like \\frac, \\cdot, \\text, \\times, \\Sigma.** Instead, you MUST use only standard Korean text, simple symbols (like the letter 'x' for multiplication, '/' or '(분자/분모)' for fractions, '+' for addition, '제곱' for powers), or HTML entities (like '&times;' for multiplication, '&Sigma;' for summation, '&radic;' for square root).
-            
-            Your output MUST be plain, conversational Korean text. For mathematical explanations, use clear, step-by-step Korean language and simple examples related to discrete probability variables (like dice, lotteries, or scores). Keep responses conversational and encouraging.
-        `;
-        let chatHistory = [];
-        let isGenerating = false;
-        let lastUserMessageId = 0; // for managing history in case of error
+        // --- 6. AI 보조교사 (Gemini API) 로직 (통합 수정본) ---
+const apiKey = ""; 
+const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-        // 지수 백오프를 이용한 fetch 함수
-        async function fetchWithBackoff(url, options, maxRetries = 5) {
-            for (let attempt = 0; attempt < maxRetries; attempt++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.ok) {
-                        return response;
-                    }
-                    if (response.status === 429 && attempt < maxRetries - 1) { // Rate Limit
-                        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        continue;
-                    }
-                    throw new Error(`API response failed with status ${response.status}`);
-                } catch (error) {
-                    if (attempt === maxRetries - 1) {
-                        throw error;
-                    }
-                    const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        }
+// **강력하게 강화된 시스템 프롬프트: 모든 LaTeX/MathJax/복잡 기호 절대 금지 + 단계 형식 강제**
+const systemPrompt = `
+You are a friendly, patient AI teaching assistant for high school probability/statistics. Always reply in Korean.
 
-        // 메시지를 UI에 추가하는 함수
-        function addMessage(role, text) {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', role === 'user' ? 'user-message' : 'ai-message');
-            
-            const contentElement = document.createElement('div');
-            contentElement.classList.add('message-content');
-            
-            // 텍스트를 마크다운 형식으로 파싱하여 HTML로 변환
-            contentElement.innerHTML = parseMarkdown(text); 
-            
-            messageElement.appendChild(contentElement);
-            chatbox.appendChild(messageElement);
-            chatbox.scrollTop = chatbox.scrollHeight; // 스크롤 하단으로 이동
-            
-            return messageElement;
-        }
+[ABSOLUTE RULES FOR OUTPUT]
+- DO NOT use any LaTeX/MathJax or delimiters ($, $$, \\(, \\), \\begin, \\frac, \\cdot, \\text, \\times, \\Sigma, etc).
+- Use only plain Korean text, simple symbols (x for multiply, / for fractions, +, -, 제곱), or safe HTML entities (&times;, &Sigma;, &radic;).
+- Write the answer as a sequence of short steps.
+- STRICT FORMAT:
+  [STEP 1] ... 
+  [STEP 2] ...
+  (추가 단계가 있으면 계속)
+  [END]
 
-        // 로딩 메시지 추가/제거
-        function addLoadingMessage() {
-            const loadingMessage = addMessage('ai', '');
-            loadingMessage.id = 'loadingMessage';
-            loadingMessage.querySelector('.message-content').innerHTML = `
-                <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
-            `;
-        }
+각 단계는 1~3문장으로 짧고 명확하게 쓰고, 고등학교 교과서 수준의 표기(E(X), Var(X), σ 등)를 사용하되 LaTeX는 절대 쓰지 말 것.
+예시(형식): 
+[STEP 1] 문제에서 확률변수 X의 가능한 값을 확인한다.
+[STEP 2] E(X) = 각 값 × 그 값의 확률을 모두 더한다.
+[END]
+`;
 
-        function removeLoadingMessage() {
-            const loadingEl = document.getElementById('loadingMessage');
-            if (loadingEl) {
-                loadingEl.remove();
-            }
-        }
-        
-        // 간단한 마크다운 파싱 (볼드체, 줄바꿈)
-        function parseMarkdown(text) {
-            let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // **볼드체**
-            html = html.replace(/\n/g, '<br>'); // 줄바꿈
-            return html;
-        }
+let chatHistory = [];
+let isGenerating = false;
+let lastUserMessageId = 0; // for managing history in case of error
 
+// --- LaTeX/MathJax 및 특수기호 정리 함수 ---
+function cleanMathSyntax(text) {
+  return text
+    // 수식 구분자/inline 제거
+    .replace(/\$\$/g, "")
+    .replace(/\$([^$]+)\$/g, "$1")
+    .replace(/\\\(|\\\)/g, "")
+    // \text{...} 등 일반 텍스트로
+    .replace(/\\text\{([^}]*)\}/g, "$1")
+    // 연산/기호 치환
+    .replace(/\\times/g, "×")
+    .replace(/\\cdot/g, "×")
+    .replace(/\\div/g, "÷")
+    .replace(/\\pm/g, "±")
+    .replace(/\\leq/g, "≤")
+    .replace(/\\geq/g, "≥")
+    .replace(/\\ne/g, "≠")
+    .replace(/\\approx/g, "≈")
+    // 그리스 문자
+    .replace(/\\sigma/g, "σ")
+    .replace(/\\Sigma/g, "Σ")
+    .replace(/\\mu/g, "μ")
+    .replace(/\\pi/g, "π")
+    // 제곱근/분수 간단화
+    .replace(/\\sqrt\{([^}]*)\}/g, "√($1)")
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "($1 ÷ $2)")
+    // 남은 백슬래시 명령 제거
+    .replace(/\\[a-zA-Z]+/g, "")
+    // 첨자(간단 처리)
+    .replace(/_{(\w+)}/g, "₍$1₎")
+    .replace(/\^{(\w+)}/g, "⁽$1⁾")
+    // 자잘한 정리
+    .replace(/\*/g, "×")
+    .replace(/==/g, "=")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
 
-        // AI에게 질문을 보내는 함수
-        async function sendMessage() {
-            if (isGenerating) return;
-            const query = chatInput.value.trim();
-            if (!query) return;
+// --- 단계별 표시를 위한 전역 큐 ---
+let stepQueue = [];
 
-            // 1. UI에 사용자 메시지 추가
-            addMessage('user', query);
-            chatInput.value = '';
-            
-            // 2. API 호출 준비
-            lastUserMessageId = chatHistory.length; // Save index before pushing
-            chatHistory.push({ role: "user", parts: [{ text: query }] });
-            isGenerating = true;
-            sendButton.disabled = true;
-            addLoadingMessage();
+// [STEP n] ... [END] 형식 파서
+function parseSteps(text) {
+  const untilEnd = text.split(/\[END\]/i)[0] || text;
+  const parts = untilEnd.split(/\[STEP\s*\d+\]\s*/i).map(s => s.trim()).filter(Boolean);
+  return parts;
+}
 
-            const payload = {
-                contents: chatHistory,
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                }
-            };
-            
-            try {
-                const response = await fetchWithBackoff(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+// "다음 단계" 버튼 보이기/숨기기
+function ensureNextStepButton() {
+  let nextBtn = document.getElementById('nextStepBtn');
+  if (!nextBtn) {
+    nextBtn = document.createElement('button');
+    nextBtn.id = 'nextStepBtn';
+    nextBtn.textContent = '다음 단계 ▶';
+    nextBtn.className = 'next-step-btn';
+    // sendButton 기준으로 옆에 붙이기 (없으면 chatbox 아래)
+    if (typeof sendButton !== 'undefined' && sendButton && sendButton.parentNode) {
+      sendButton.parentNode.appendChild(nextBtn);
+    } else if (typeof chatbox !== 'undefined' && chatbox && chatbox.parentNode) {
+      chatbox.parentNode.appendChild(nextBtn);
+    } else {
+      document.body.appendChild(nextBtn);
+    }
+    nextBtn.addEventListener('click', handleNextStepClick);
+  }
+  nextBtn.style.display = stepQueue.length > 0 ? 'inline-block' : 'none';
+}
 
-                const result = await response.json();
-                const candidate = result.candidates?.[0];
-                let aiResponseText = "죄송해요, 답변을 생성하는 데 문제가 발생했습니다. 다시 시도해 주세요.";
+// 버튼 클릭 시 다음 단계 한 개만 출력
+function handleNextStepClick() {
+  if (!stepQueue.length) {
+    ensureNextStepButton();
+    return;
+  }
+  const step = stepQueue.shift();
+  addMessage('model', step);
+  ensureNextStepButton();
+}
 
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    aiResponseText = candidate.content.parts[0].text;
-                    // 3. 응답을 채팅 기록에 추가
-                    chatHistory.push({ role: "model", parts: [{ text: aiResponseText }] });
-                }
+// 지수 백오프를 이용한 fetch 함수
+async function fetchWithBackoff(url, options, maxRetries = 5) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) {
+        return response;
+      }
+      if (response.status === 429 && attempt < maxRetries - 1) { // Rate Limit
+        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw new Error(`API response failed with status ${response.status}`);
+    } catch (error) {
+      if (attempt === maxRetries - 1) {
+        throw error;
+      }
+      const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
 
-                // 4. UI 업데이트
-                removeLoadingMessage();
-                addMessage('model', aiResponseText);
+// 메시지를 UI에 추가하는 함수 (기존 그대로 사용)
+function addMessage(role, text) {
+  const messageElement = document.createElement('div');
+  messageElement.classList.add('message', role === 'user' ? 'user-message' : 'ai-message');
+  
+  const contentElement = document.createElement('div');
+  contentElement.classList.add('message-content');
+  
+  // 텍스트를 마크다운 형식으로 파싱하여 HTML로 변환
+  contentElement.innerHTML = parseMarkdown(text); 
+  
+  messageElement.appendChild(contentElement);
+  chatbox.appendChild(messageElement);
+  chatbox.scrollTop = chatbox.scrollHeight; // 스크롤 하단으로 이동
+  
+  return messageElement;
+}
 
-            } catch (error) {
-                console.error("Gemini API Error:", error);
-                removeLoadingMessage();
-                addMessage('model', "죄송합니다. 네트워크 문제 또는 서버 오류로 인해 답변을 가져올 수 없습니다. 다시 시도해 주세요.");
-                
-                // 에러 발생 시 히스토리에서 마지막 사용자 메시지를 제거 (재시도를 위해)
-                if (chatHistory.length > lastUserMessageId) {
-                    chatHistory.pop(); 
-                }
-            } finally {
-                isGenerating = false;
-                sendButton.disabled = false;
-            }
-        }
-        
-        // --- 7. 초기화 및 반응형 처리 ---
+// 로딩 메시지 추가/제거 (기존 그대로 사용)
+function addLoadingMessage() {
+  const loadingMessage = addMessage('ai', '');
+  loadingMessage.id = 'loadingMessage';
+  loadingMessage.querySelector('.message-content').innerHTML = `
+      <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
+  `;
+}
+function removeLoadingMessage() {
+  const loadingEl = document.getElementById('loadingMessage');
+  if (loadingEl) {
+    loadingEl.remove();
+  }
+}
 
-        // 캔버스 크기 조정 및 그리기
-        function initCanvasSize() {
-            // 부모 요소의 너비를 확인하여 캔버스 너비 설정
-            const parentWidth = conceptCanvas.parentElement.clientWidth;
-            
-            // Canvas 높이 설정 (가로 폭에 맞춰 비율 유지)
-            // 최소 250px, 최대 400px을 넘지 않도록 설정
-            const conceptHeight = Math.min(300, Math.max(250, 0.4 * parentWidth)); 
-            const diceHeight = Math.min(400, Math.max(300, 0.5 * parentWidth));
+// 간단한 마크다운 파싱 (볼드체, 줄바꿈) (기존 그대로 사용)
+function parseMarkdown(text) {
+  let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // **볼드체**
+  html = html.replace(/\n/g, '<br>'); // 줄바꿈
+  return html;
+}
 
-            conceptCanvas.width = parentWidth;
-            conceptCanvas.height = conceptHeight;
-            diceCanvas.width = parentWidth;
-            diceCanvas.height = diceHeight;
+// AI에게 질문을 보내는 함수 (단계형 출력 적용)
+async function sendMessage() {
+  if (isGenerating) return;
+  const query = chatInput.value.trim();
+  if (!query) return;
 
-            // 주사위 오버레이 크기도 캔버스와 동일하게 설정
-            diceOverlay.style.height = `${diceHeight}px`;
+  // 1. UI에 사용자 메시지 추가
+  addMessage('user', query);
+  chatInput.value = '';
+  
+  // 2. API 호출 준비
+  lastUserMessageId = chatHistory.length; // Save index before pushing
+  chatHistory.push({ role: "user", parts: [{ text: query }] });
+  isGenerating = true;
+  sendButton.disabled = true;
+  addLoadingMessage();
 
-            drawConceptCanvas();
-            drawDiceDistribution(diceData.length, calculateStats().mean);
-        }
-        
-        // 챗 위젯 토글 함수
-        function toggleChatWidget() {
-            floatingChatWidget.classList.toggle('closed');
-            if (!floatingChatWidget.classList.contains('closed')) {
-                // 채팅창 열 때 스크롤 및 포커스
-                chatbox.scrollTop = chatbox.scrollHeight;
-                chatInput.focus();
-                // 챗봇 버튼을 닫기 버튼 모양으로 변경 (X)
-                chatToggleBtn.innerHTML = 'X';
-            } else {
-                 // 챗봇 버튼을 다시 채팅 아이콘으로 변경
-                chatToggleBtn.innerHTML = '💬';
-            }
-        }
+  const payload = {
+    contents: chatHistory,
+    systemInstruction: {
+      parts: [{ text: systemPrompt }]
+    }
+  };
+  
+  let aiResponseText = "죄송해요, 답변을 생성하는 데 문제가 발생했습니다. 다시 시도해 주세요.";
 
-        // 초기화 함수
-        function init() {
-            initCanvasSize(); 
-            updateDiceSimulation(); 
-            floatingChatWidget.classList.add('closed'); // 초기에는 닫힌 상태로 시작
-        }
+  try {
+    const response = await fetchWithBackoff(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+    const candidate = result.candidates?.[0];
+
+    if (candidate && candidate.content?.parts?.[0]?.text) {
+      aiResponseText = candidate.content.parts[0].text;
+
+      // 1) 수식/기호 정리
+      aiResponseText = cleanMathSyntax(aiResponseText);
+
+      // 2) 단계 파싱
+      const steps = parseSteps(aiResponseText);
+
+      // 3) 단계 큐에 적재
+      stepQueue = steps.slice();
+
+      // 4) 채팅기록 저장(정제본 전체)
+      chatHistory.push({ role: "model", parts: [{ text: aiResponseText }] });
+    }
+
+    // 4. UI 업데이트
+    removeLoadingMessage();
+
+    // 단계가 있으면 첫 단계만 즉시 출력, 나머지는 버튼으로 진행
+    if (stepQueue.length > 0) {
+      const first = stepQueue.shift();
+      addMessage('model', first);
+      ensureNextStepButton(); // '다음 단계' 버튼 표시
+    } else {
+      // 단계 형식이 아닐 때의 안전장치: 전체 문장 출력
+      addMessage('model', aiResponseText);
+    }
+
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    removeLoadingMessage();
+    addMessage('model', "죄송합니다. 네트워크 문제 또는 서버 오류로 인해 답변을 가져올 수 없습니다. 다시 시도해 주세요.");
+    
+    // 에러 발생 시 히스토리에서 마지막 사용자 메시지를 제거 (재시도를 위해)
+    if (chatHistory.length > lastUserMessageId) {
+      chatHistory.pop(); 
+    }
+  } finally {
+    isGenerating = false;
+    sendButton.disabled = false;
+  }
+}
+
+// --- 7. 초기화 및 반응형 처리 ---
+
+// 캔버스 크기 조정 및 그리기 (기존 그대로 사용)
+function initCanvasSize() {
+  // 부모 요소의 너비를 확인하여 캔버스 너비 설정
+  const parentWidth = conceptCanvas.parentElement.clientWidth;
+  
+  // Canvas 높이 설정 (가로 폭에 맞춰 비율 유지)
+  // 최소 250px, 최대 400px을 넘지 않도록 설정
+  const conceptHeight = Math.min(300, Math.max(250, 0.4 * parentWidth)); 
+  const diceHeight = Math.min(400, Math.max(300, 0.5 * parentWidth));
+
+  conceptCanvas.width = parentWidth;
+  conceptCanvas.height = conceptHeight;
+  diceCanvas.width = parentWidth;
+  diceCanvas.height = diceHeight;
+
+  // 주사위 오버레이 크기도 캔버스와 동일하게 설정
+  diceOverlay.style.height = `${diceHeight}px`;
+
+  drawConceptCanvas();
+  drawDiceDistribution(diceData.length, calculateStats().mean);
+}
+
+// 챗 위젯 토글 함수 (기존 그대로 사용)
+function toggleChatWidget() {
+  floatingChatWidget.classList.toggle('closed');
+  if (!floatingChatWidget.classList.contains('closed')) {
+    // 채팅창 열 때 스크롤 및 포커스
+    chatbox.scrollTop = chatbox.scrollHeight;
+    chatInput.focus();
+    // 챗봇 버튼을 닫기 버튼 모양으로 변경 (X)
+    chatToggleBtn.innerHTML = 'X';
+  } else {
+      // 챗봇 버튼을 다시 채팅 아이콘으로 변경
+    chatToggleBtn.innerHTML = '💬';
+  }
+}
+
+// 초기화 함수 (기존 그대로 사용)
+function init() {
+  initCanvasSize(); 
+  updateDiceSimulation(); 
+  floatingChatWidget.classList.add('closed'); // 초기에는 닫힌 상태로 시작
+}
+
 
 
         // --- 8. 이벤트 리스너 연결 및 초기 실행 ---
