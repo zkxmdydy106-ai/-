@@ -1,1460 +1,790 @@
-<!DOCTYPE html>
+from pathlib import Path
+
+html = r"""<!doctype html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>이산확률변수의 기댓값과 표준편차 (50분 수업용)</title>
-    <style>
-        /* 1. Global & Variables */
-        :root {
-            --primary-color: #007bff; /* Blue */
-            --primary-light: #6aa8ff;
-            --accent-color: #ff9800; /* Orange for interaction */
-            --background-color: #f0f4f7; 
-            --card-bg: #ffffff;
-            --text-color: #333;
-            --border-color: #ced4da;
-            --shadow-light: 0 4px 8px rgba(0, 0, 0, 0.05);
-            --shadow-strong: 0 8px 16px rgba(0, 0, 0, 0.1);
-            --ai-bg: #e6f3ff; /* Light blue for AI messages */
-            --user-bg: #f1f1f1; /* Light gray for user messages */
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>확률과 통계 · 데이터사이언스 · AI 융합 프로젝트 계획서(학생용)</title>
+  <style>
+    :root{
+      --ink:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --soft:#f9fafb;
+      --chip:#eef2ff;
+      --accent:#2563eb;
+      --accent2:#16a34a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      color:var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+      background: linear-gradient(180deg, #ffffff, #fbfbfd);
+    }
+    .wrap{
+      max-width: 980px;
+      margin: 24px auto;
+      padding: 0 16px 48px;
+    }
+    .paper{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      box-shadow: 0 10px 30px rgba(17,24,39,.06);
+      overflow:hidden;
+    }
+    header{
+      padding: 22px 26px 18px;
+      background: linear-gradient(135deg, rgba(37,99,235,.10), rgba(22,163,74,.08));
+      border-bottom:1px solid var(--line);
+    }
+    header h1{
+      margin:0 0 6px;
+      font-size: 22px;
+      letter-spacing: -0.3px;
+    }
+    header p{
+      margin:0;
+      color:var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+      align-items:center;
+    }
+    .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      cursor:pointer;
+    }
+    .btn.primary{
+      border-color: rgba(37,99,235,.35);
+      background: rgba(37,99,235,.10);
+    }
+    .btn:active{transform: translateY(1px)}
+    .content{
+      padding: 22px 26px 26px;
+    }
+    .note{
+      display:flex;
+      gap:10px;
+      padding: 12px 12px;
+      border: 1px dashed rgba(37,99,235,.35);
+      background: rgba(37,99,235,.05);
+      border-radius: 12px;
+      font-size: 13px;
+      color: var(--ink);
+      margin-bottom: 18px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--chip);
+      font-size: 12px;
+      color: #3730a3;
+      border:1px solid rgba(55,48,163,.18);
+      white-space:nowrap;
+    }
+    section{
+      margin: 18px 0 0;
+      border:1px solid var(--line);
+      border-radius: 14px;
+      overflow:hidden;
+    }
+    section .hd{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content: space-between;
+      padding: 14px 14px 12px;
+      background: var(--soft);
+      border-bottom: 1px solid var(--line);
+    }
+    section .hd h2{
+      margin:0;
+      font-size: 16px;
+      letter-spacing:-0.2px;
+    }
+    section .hd .sub{
+      margin:3px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    section .bd{
+      padding: 14px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .grid3{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 860px){
+      .grid,.grid3{grid-template-columns:1fr}
+    }
+    .field{
+      border:1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 10px 8px;
+      background:#fff;
+    }
+    .field label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input[type="text"], input[type="number"], textarea{
+      width:100%;
+      border:1px solid rgba(229,231,235,.0);
+      outline:none;
+      font-size: 14px;
+      padding: 8px 8px;
+      border-radius: 10px;
+      background: #fff;
+    }
+    textarea{min-height: 86px; resize: vertical; border:1px solid rgba(229,231,235,.0)}
+    input[type="text"]:focus, input[type="number"]:focus, textarea:focus{
+      border-color: rgba(37,99,235,.35);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+    }
+    .checks{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 14px;
+      padding: 6px 0 0;
+    }
+    .checks label{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size: 13px;
+      color: var(--ink);
+      margin: 0;
+      cursor:pointer;
+    }
+    .checks input{width:16px;height:16px}
+    table{
+      width:100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius: 12px;
+    }
+    th,td{
+      padding: 10px 10px;
+      border-bottom:1px solid var(--line);
+      border-right:1px solid var(--line);
+      vertical-align: top;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    th:last-child, td:last-child{border-right:none}
+    tr:last-child td{border-bottom:none}
+    th{
+      background: var(--soft);
+      text-align:left;
+      font-weight: 700;
+      font-size: 12px;
+      color:#374151;
+    }
+    .hint{
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+    .divider{
+      height:1px;background:var(--line);
+      margin: 12px 0;
+    }
+    .sig{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .sig .field{min-height: 62px}
+    .small{
+      font-size:12px;color:var(--muted);
+    }
+    .scorebox{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background:#fff;
+      font-size: 13px;
+      color: var(--ink);
+      margin: 6px 8px 0 0;
+    }
+    .pill input{width:16px;height:16px}
 
-        body {
-            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', Roboto, 'Noto Sans KR', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px 10px;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            padding-bottom: 20px; 
-        }
-
-        .container {
-            width: 100%;
-            max-width: 900px;
-        }
-
-        /* 2. Typography & Header */
-        h1 {
-            font-size: 2.2rem;
-            text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 30px;
-            font-weight: 800;
-        }
-
-        h2 {
-            font-size: 1.6rem;
-            color: var(--text-color);
-            border-bottom: 4px solid var(--primary-light);
-            padding-bottom: 5px;
-            margin-top: 35px;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        
-        h3 {
-             font-size: 1.3rem;
-             color: var(--accent-color);
-             margin-top: 20px;
-             margin-bottom: 10px;
-        }
-
-        /* 3. Card/Module Styling */
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: var(--shadow-strong);
-            padding: 25px;
-            margin-bottom: 30px;
-            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.4, 1), box-shadow 0.4s ease;
-            border: 1px solid var(--border-color);
-        }
-
-        /* 4. Canvas Styling & Dice Overlay */
-        canvas {
-            width: 100%;
-            border: 2px solid var(--primary-light);
-            border-radius: 10px;
-            background-color: #ffffff;
-            margin-top: 15px;
-        }
-        
-        #diceSimulationContainer {
-            position: relative;
-        }
-
-        #diceOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            font-size: 4rem;
-            font-weight: 900;
-            color: var(--primary-color);
-            z-index: 10;
-        }
-
-        /* 5. Button & Form Elements (Enhanced Touch Targets) */
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 16px; /* Great for touch */
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--card-bg);
-            background-color: var(--primary-color);
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.15s ease, box-shadow 0.3s ease;
-            box-shadow: var(--shadow-light);
-            margin-top: 15px;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-light);
-            box-shadow: var(--shadow-strong);
-        }
-
-        .btn:active {
-            transform: translateY(2px);
-            box-shadow: none;
-        }
-        
-        .quiz-btn {
-            background-color: #28a745;
-        }
-        .quiz-btn:hover {
-            background-color: #218838;
-        }
-
-        input[type="number"], input[type="text"] {
-            width: 100%;
-            padding: 14px; /* Great for touch */
-            margin-bottom: 15px;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            box-sizing: border-box;
-            font-size: 1.1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        input[type="number"]:focus, input[type="text"]:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2);
-            outline: none;
-        }
-        
-        /* 수식 영역 스타일 (교과서처럼 보이도록 단순화) */
-        .math-expr {
-            font-family: 'Malgun Gothic', 'Noto Sans KR', sans-serif; 
-            font-size: 1.15rem;
-            background-color: #e9ecef;
-            padding: 3px 6px;
-            border-radius: 4px;
-            display: inline-block;
-            margin: 0 2px;
-            color: #495057;
-            white-space: nowrap;
-        }
-        
-        .formula-display {
-            background-color: #e3f2fd; /* Light blue for formula box */
-            border-left: 5px solid var(--primary-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            font-size: 1.05rem;
-            font-weight: 600;
-            overflow-x: auto; 
-        }
-        .formula-display strong {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-        }
-
-        .quiz-feedback {
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 15px;
-            font-weight: 600;
-            min-height: 50px;
-            font-size: 1.05rem;
-            transition: all 0.3s ease;
-        }
-
-        .correct {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .incorrect {
-            background-color: #f8d7da; 
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        /* 테이블 스타일링 */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-            font-size: 1rem;
-        }
-        .data-table th, .data-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        .data-table th {
-            background-color: var(--primary-light);
-            color: white;
-        }
-        .data-table tr:nth-child(even) {
-            background-color: #f8f8ff;
-        }
-        
-        /* 기타 스타일 */
-        .stat-label { color: #6c757d; }
-        .stat-value { color: var(--accent-color); font-size: 1.8rem; font-weight: 800; }
-        .practice-input-group label { text-align: right; font-weight: bold; flex-basis: 120px; }
-
-        /* 7. Chat Styles */
-        .message {
-            display: flex;
-            margin-bottom: 10px;
-            max-width: 100%;
-        }
-
-        .user-message {
-            margin-left: auto;
-            justify-content: flex-end;
-        }
-
-        .ai-message {
-            margin-right: auto;
-            justify-content: flex-start;
-        }
-
-        .message-content {
-            padding: 10px 15px;
-            border-radius: 18px;
-            font-size: 1rem;
-            line-height: 1.4;
-            word-break: break-word;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-message .message-content {
-            background-color: var(--user-bg);
-            color: var(--text-color);
-            border-bottom-right-radius: 4px;
-        }
-
-        .ai-message .message-content {
-            background-color: var(--ai-bg);
-            color: var(--primary-color);
-            border-bottom-left-radius: 4px;
-            border: 1px solid #cce5ff;
-        }
-
-        .loading-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            margin: 0 1px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
-        .loading-dot:nth-child(3) { animation-delay: 0s; }
-
-        @keyframes bounce {
-          0%, 80%, 100% { transform: scale(0); }
-          40% { transform: scale(1.0); }
-        }
-        
-        /* 8. Floating Chat Widget (New Fixed Interface) */
-        #chat-toggle-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            color: white;
-            font-size: 1.5rem;
-            border: none;
-            box-shadow: var(--shadow-strong);
-            cursor: pointer;
-            z-index: 2000;
-            transition: background-color 0.3s;
-        }
-        #chat-toggle-button:hover { background-color: var(--primary-light); }
-
-        #floating-chat-widget {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            width: 90vw; /* Mobile width */
-            max-width: 400px; /* Desktop max width */
-            height: 70vh;
-            max-height: 500px;
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-            display: flex;
-            flex-direction: column;
-            z-index: 1999;
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        #floating-chat-widget.closed {
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(20px) scale(0.95);
-        }
-
-        #chat-header {
-            padding: 15px;
-            background-color: var(--primary-color);
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-            border-top-left-radius: 16px;
-            border-top-right-radius: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #close-chat-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0;
-            margin: 0;
-            width: 20px;
-            height: 20px;
-            line-height: 1;
-        }
-        
-        #chatbox {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 15px;
-            background-color: #fdfdff;
-            scroll-behavior: smooth;
-        }
-
-        #chat-input-container {
-            padding: 10px 15px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            gap: 10px;
-        }
-
-        #chatInput {
-            flex-grow: 1;
-            margin-bottom: 0;
-        }
-
-        #sendButton {
-            width: 100px;
-            padding: 10px;
-            margin-top: 0;
-            font-size: 1rem;
-            white-space: nowrap;
-        }
-
-        /* Mobile specific styling for full-screen chat */
-        @media (max-width: 600px) {
-            #floating-chat-widget {
-                bottom: 0;
-                right: 0;
-                width: 100vw;
-                height: 100vh;
-                max-height: 100vh;
-                border-radius: 0;
-            }
-            #chat-header {
-                border-radius: 0;
-            }
-            #chat-toggle-button {
-                bottom: 10px;
-                right: 10px;
-            }
-        }
-
-    </style>
+    /* Print */
+    @page { size: A4; margin: 14mm; }
+    @media print{
+      body{background:#fff}
+      .wrap{margin:0; padding:0}
+      .paper{border:none; box-shadow:none; border-radius:0}
+      header{border-bottom:1px solid #ddd}
+      .toolbar{display:none}
+      section{break-inside: avoid; page-break-inside: avoid}
+      textarea{min-height: 70px}
+      a{color:inherit;text-decoration:none}
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>이산확률변수의 기댓값과 표준편차</h1>
+  <div class="wrap">
+    <div class="paper">
+      <header>
+        <h1>확률과 통계 · 데이터사이언스 · AI 융합 프로젝트 계획서 (학생용)</h1>
+        <p>
+          Google Forms(설문 수집) → CSV 전처리 → Orange3(분석·예측) → Antigravity(프로그램/웹 제작) 순서로 진행합니다.<br/>
+          아래 빈칸을 채우면, 프로젝트 전 과정이 한눈에 계획되도록 설계된 양식입니다.
+        </p>
+        <div class="toolbar" aria-label="도구">
+          <button class="btn primary" type="button" onclick="window.print()">인쇄 / PDF 저장</button>
+          <button class="btn" type="button" onclick="resetForm()">전체 초기화</button>
+          <span class="badge">A4 2~3쪽 인쇄 권장</span>
+          <span class="badge">팀당 1부 제출</span>
+        </div>
+      </header>
 
-        <!-- Section 1: 개념 도입: 평균 계산의 확률적 변환 (점수 사례) -->
-        <div class="card">
-            <h2>1. 💡 개념 도입: 평균 계산의 새로운 시각</h2>
-            <p>
-                10명 학급의 수학 점수 분포를 가정합니다: 40점(3명), 50점(5명), 60점(2명)
-            </p>
-            
-            <h3>(1) 전통적인 평균 계산 (총합/총인원)</h3>
-            <p>
-                이 반 학생들의 평균을 구하는 방법은 점수의 총합을 학생 수(10명)로 나누는 것입니다. 
-                <br>
-                점수의 총합 계산: <span class="math-expr">(40 x 3) + (50 x 5) + (60 x 2) = 120 + 250 + 120 = 490</span>점
-                <br>
-                학생 수의 총합은 <span class="math-expr">3 + 5 + 2 = 10</span>명입니다.
-                <br>
-                평균 점수는 <span class="math-expr">490 / 10 = 49</span>점 입니다.
-            </p>
-
-            <h3>(2) 평균 계산 방식을 확률적 관점으로 변환</h3>
-            <p>
-                기존 계산식을 다음과 같이 재배열합니다:
-            </p>
-            <div class="formula-display">
-                <span class="math-expr">40 x (3/10) + 50 x (5/10) + 60 x (2/10)</span>
-            </div>
-            
-            <p>
-                이 두 식은 본질적으로 동일하며, 단지 쓰는 방법만 바꾼 것입니다. 
-            </p>
-
-            <h3>확률적 해석 도입</h3>
-            <p>
-                주목해야 할 부분은 <span class="math-expr">3/10, 5/10, 2/10</span> 값들입니다.
-                <br>
-                <span class="math-expr">3/10</span>은 10명 중 임의로 1명을 뽑았을 때 그 학생이 40점을 맞았을 **확률**을 의미합니다.
-                <br>
-                따라서 평균은 **(점수) x (해당 점수를 받을 확률)**을 모두 더하여 계산됩니다.
-            </p>
+      <div class="content">
+        <div class="note">
+          <span class="badge">작성 팁</span>
+          <div>
+            <div style="font-weight:700; margin-bottom:4px;">“목표 변수(예측하고 싶은 것)”를 먼저 정하면 전체가 쉬워집니다.</div>
+            <div class="small">예) “학교생활 만족도(높/중/낮)”를 예측한다 → 어떤 질문을 해야 할지, 어떤 변수를 쓸지 자연스럽게 정리됩니다.</div>
+          </div>
         </div>
 
-        <!-- Section 2: 기댓값 E(X)의 정의와 공식화 -->
-        <div class="card">
-            <h2>2. 🎯 기댓값 E(X)의 정의와 공식화</h2>
-            
-            <h3>(1) 기댓값과 평균의 차이점</h3>
-            <p>
-                <strong>기댓값 E(X)</strong>은 말 그대로 기대할 수 있는 값을 의미하며, 확률적 관점에서 계산된 **평균**입니다. 
-            </p>
-            
-            <h3>(2) 기댓값 개념이 필요한 상황 (통계적 추정)</h3>
-            <p>
-                만약 수많은 학생(예: 5만 명)이 시험을 봤을 때, 모든 데이터를 집계하는 대신 표본(Sample)을 추출하여 전체 평균을 추정해야 할 경우가 있습니다.
-                <br>
-                예를 들어 100명 중 10명을 임의로 추출하여 점수를 봤더니 40점(3명), 50점(5명), 60점(2명)이 나왔다고 가정합니다. 이때 <span class="math-expr">3/10, 5/10, 2/10</span>는 100명 전체에서 해당 점수를 맞을 학생의 가능성(**확률**)을 나타내는 값으로 해석됩니다.
-                <br>
-                즉, 100명 중 약 30%가 40점을 맞을 것으로 **기대**할 수 있다는 의미이며, 이렇게 확률 개념을 동반하여 구한 평균이 바로 **기댓값**입니다.
-            </p>
-            
-            <p>
-                **기댓값의 표기법:** <span class="math-expr">E(X)</span>로 표기하며, 평균(Mean)을 의미하는 <span class="math-expr">m</span>을 사용하여 <span class="math-expr">E(X) = m</span>로 나타내기도 합니다.
-            </p>
-            
-            <h3>(3) 이산확률변수의 기댓값 공식화</h3>
-            <p>
-                확률 변수가 가질 수 있는 값이 x1부터 xn이고, 그에 해당하는 확률 값이 p1부터 pn일 때, 기댓값 E(X)는 다음과 같이 계산됩니다. 
-                <br>
-                기댓값을 구할 때는 확률 변수 (점수)에 그 값이 나올 확률 값을 곱한 후, 이 값들을 모두 더해주면 됩니다.
-            </p>
-            <div class="formula-display">
-                <strong>E(X) = m</strong> <span class="math-expr">= x1 p1 + x2 p2 + ... + xn pn</span>
-                <br>
-                기호로는 <span class="math-expr">&Sigma;(i=1~n) xi pi</span> 로 표현됩니다. (여기서 <span class="math-expr">&Sigma;</span>는 **시그마 대문자** 기호입니다.)
+        <!-- 1 -->
+        <section>
+          <div class="hd">
+            <div>
+              <h2>1. 프로젝트 제목 / 팀명 / 팀원</h2>
+              <div class="sub">기본 정보(반·번호는 선택)</div>
+            </div>
+            <span class="badge">필수</span>
+          </div>
+          <div class="bd">
+            <div class="grid">
+              <div class="field">
+                <label>프로젝트 제목</label>
+                <input type="text" placeholder="예: 우리 학교 학습 습관이 성적에 미치는 영향 예측" />
+              </div>
+              <div class="field">
+                <label>팀명</label>
+                <input type="text" placeholder="예: 확통연구소" />
+              </div>
             </div>
 
-            <h3>(4) 분산 V(X)와 표준편차 σ(X)</h3>
-            <p>
-                **분산 V(X)**: 평균(<span class="math-expr">m</span>)으로부터 확률변수가 얼마나 퍼져있는지 측정하는 값입니다. <span class="math-expr">V(X) = E((X - m)&sup2;)</span>
-            </p>
-            <p>
-                **표준편차 σ(X)**: 분산의 양의 제곱근입니다. <span class="math-expr">&sigma;(X) = &radic;V(X)</span>.
-            </p>
+            <div class="divider"></div>
 
-            <canvas id="conceptCanvas" width="900" height="300"></canvas>
-            <div style="text-align: center; margin-top: 10px; font-size: 0.9rem; color: #555;">
-                <span style="color: green; font-weight: bold;">[초록색]</span> 표준편차 <span class="math-expr">&sigma;</span>(X)가 **작음** (밀집) vs. 
-                <span style="color: red; font-weight: bold;">[빨간색]</span> 표준편차 <span class="math-expr">&sigma;</span>(X)가 **큼** (분산)
+            <div class="field">
+              <label>팀원(이름 / 역할)</label>
+              <textarea placeholder="예: 김○○(팀장/설문), 이○○(전처리), 박○○(Orange3 분석), 최○○(Antigravity 제작)"></textarea>
+              <div class="hint">역할은 겹쳐도 됩니다. 최소 1개 이상 역할을 맡아 적으세요.</div>
             </div>
-        </div>
+          </div>
+        </section>
 
-        <!-- Section 3: 기댓값 계산 연습 2: 제비뽑기와 의사결정 -->
-        <div class="card">
-            <h2>3. 🎰 기댓값 계산 연습: 제비뽑기와 의사결정</h2>
-            <p>
-                총 10개의 제비가 있으며, 1등(1개), 2등(2개), 3등(3개), 꽝(4개)이 들어 있습니다.
-                상금을 확률 변수 X라고 할 때, 각 등수별 확률은 다음과 같습니다.
-            </p>
-            
-            <table class="data-table">
-                <thead>
-                    <tr><th>확률변수 X (상금, 만원)</th><th>1,000</th><th>200</th><th>50</th><th>0</th></tr>
-                </thead>
-                <tbody>
-                    <tr><th>확률 P(X=x)</th><th>1/10</th><th>2/10</th><th>3/10</th><th>4/10</th></tr>
-                </tbody>
-            </table>
-
-            <h3>기댓값 계산</h3>
-            <p>
-                E(X) <span class="math-expr">= (1000 x 1/10) + (200 x 2/10) + (50 x 3/10) + (0 x 4/10)</span>
-                <br>
-                E(X) <span class="math-expr">= 100 + 40 + 15 + 0 = 155</span>만 원
-            </p>
-            
-            <div class="formula-display" style="background-color: #f7e6e6; border-left-color: red;">
-                <strong>기댓값을 이용한 의사결정:</strong>
-                <br>
-                참가비가 <span class="math-expr">155</span>만 원보다 많다면 (예: <span class="math-expr">200</span>만 원): 이 도박에 참가해서는 안 됩니다. 기대되는 값보다 더 많은 비용을 지불하기 때문입니다. 
-                <br>
-                참가비가 <span class="math-expr">155</span>만 원보다 적다면 (예: <span class="math-expr">100</span>만 원): 해볼 만합니다. 기대값보다 적은 비용으로 참여할 수 있기 때문입니다.
+        <!-- 2 -->
+        <section>
+          <div class="hd">
+            <div>
+              <h2>2. 프로젝트 개요</h2>
+              <div class="sub">주제와 목표를 학생 눈높이로 한 문단으로 정리</div>
             </div>
-        </div>
-        
-        <!-- Section 4: 간단한 적용 문제 추가 (인터랙티브) -->
-        <div class="card">
-            <h2>4. 🧩 간단한 확률변수 적용 문제</h2>
-            
-            <h3>(1) 주사위 2개 합의 기댓값 E(X)</h3>
-            <p>
-                서로 다른 두 개의 주사위를 던져 나오는 눈의 합을 확률변수 X라고 할 때, 기댓값 E(X)를 계산해 봅시다.
-            </p>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>X (합)</th>
-                        <th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th>
-                        <th>8</th><th>9</th><th>10</th><th>11</th><th>12</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th>P(X=x)</th>
-                        <th>1/36</th><th>2/36</th><th>3/36</th><th>4/36</th><th>5/36</th><th>6/36</th>
-                        <th>5/36</th><th>4/36</th><th>3/36</th><th>2/36</th><th>1/36</th>
-                    </tr>
-                </tbody>
-            </table>
-            <label for="diceSumAnswer" class="stat-label" style="display: block; margin-top: 15px; margin-bottom: 5px;">기댓값 E(X)를 입력하세요:</label>
-            <input type="number" id="diceSumAnswer" placeholder="정답을 입력" step="1">
-            <button class="btn quiz-btn" id="checkDiceSumBtn">정답 확인</button>
-            <div class="quiz-feedback" id="diceSumFeedback"></div>
-            
-            <h3 style="margin-top: 30px;">(2) 동전 3회 던지기 상금의 기댓값 E(상금)</h3>
-            <p>
-                동전을 3회 던져 앞면(H)이 나오는 횟수를 확률변수 X라고 합니다. 상금은 (X의 제곱) x 100원일 때, 기대되는 상금의 기댓값 E(상금)을 구합니다. (상금 = <span class="math-expr">Y = 100X&sup2;</span>)
-            </p>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>앞면 횟수 X</th><th>0</th><th>1</th><th>2</th><th>3</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th>상금 Y (<span class="math-expr">100X&sup2;</span>, 원)</th>
-                        <th>0</th><th>100</th><th>400</th><th>900</th>
-                    </tr>
-                    <tr>
-                        <th>확률 P(X=x)</th>
-                        <th>1/8</th><th>3/8</th><th>3/8</th><th>1/8</th>
-                    </tr>
-                </tbody>
-            </table>
-            <label for="coinPrizeAnswer" class="stat-label" style="display: block; margin-top: 15px; margin-bottom: 5px;">기대되는 상금(원)을 입력하세요:</label>
-            <input type="number" id="coinPrizeAnswer" placeholder="정답을 입력" step="1">
-            <button class="btn quiz-btn" id="checkCoinPrizeBtn">정답 확인</button>
-            <div class="quiz-feedback" id="coinPrizeFeedback"></div>
-        </div>
-
-
-        <!-- Section 5: 인터랙티브 실습 (큰 수의 법칙) -->
-        <div class="card" id="diceSimulationContainer">
-            <h2>5. 🎲 큰 수의 법칙 체험 (인터랙티브 주사위)</h2>
-            <p>
-                주사위 던지기를 반복하면서 '현재 평균'이 이론적인 **기댓값 3.5**에 수렴하는 과정을 눈으로 확인해 보세요!
-            </p>
-            
-            <button class="btn" id="rollDiceBtn">주사위 던지기! 🎲</button>
-            
-            <!-- 주사위 굴림 모션 오버레이 -->
-            <div id="diceOverlay">...</div>
-
-            <div class="formula-display">
-                현재 평균 E(X) 계산식: <span id="meanFormula">E(X) = &Sigma; (값 x 확률) = (1 x P(1) + 2 x P(2) + ... + 6 x P(6))</span>
+            <span class="badge">필수</span>
+          </div>
+          <div class="bd">
+            <div class="field">
+              <label>프로젝트 주제(무엇을 알아보고 싶은가?)</label>
+              <textarea placeholder="예: 우리 학교 학생들의 수면 시간, 스마트폰 사용 시간, 공부 시간 등이 학교생활 만족도에 어떤 영향을 주는지 알아본다."></textarea>
             </div>
 
-            <div class="result-stats">
-                <div class="stat-item">
-                    <div class="stat-label">총 시도 횟수 (N)</div>
-                    <div class="stat-value" id="trialCount">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">현재 평균 E(X) = m</div>
-                    <div class="stat-value" id="currentMean">--</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">현재 표준편차 σ(X)</div>
-                    <div class="stat-value" id="currentStdDev">--</div>
-                </div>
+            <div class="grid" style="margin-top:12px;">
+              <div class="field">
+                <label>프로젝트 목표(무엇을 ‘예측’하거나 ‘분류’할 것인가?)</label>
+                <textarea placeholder="예: 설문 데이터로 ‘만족도(높/중/낮)’를 예측하는 모델을 만들고, 중요한 요인을 찾아 설명한다."></textarea>
+              </div>
+              <div class="field">
+                <label>최종 산출물(어떤 결과물을 만들 것인가?)</label>
+                <textarea placeholder="예: 입력(공부시간/수면시간 등)을 넣으면 예상 만족도를 보여주는 웹페이지 + 결과 요약 리포트"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3 -->
+        <section>
+          <div class="hd">
+            <div>
+              <h2>3. 설문 설계 계획</h2>
+              <div class="sub">조사 목적, 대상·표본, 문항 척도(명목/서열/구간/비율)를 포함</div>
+            </div>
+            <span class="badge">필수</span>
+          </div>
+          <div class="bd">
+            <div class="grid3">
+              <div class="field">
+                <label>조사 목적</label>
+                <textarea placeholder="예: 학생의 생활 습관 데이터로 만족도를 예측하기 위한 입력 변수를 수집한다."></textarea>
+              </div>
+              <div class="field">
+                <label>조사 대상</label>
+                <textarea placeholder="예: 본교 1~3학년 학생 / 혹은 2학년 전체 등"></textarea>
+              </div>
+              <div class="field">
+                <label>예상 표본 크기(명)</label>
+                <input type="number" min="0" placeholder="예: 80" />
+                <div class="hint">표본이 너무 적으면 모델 성능이 불안정할 수 있어요.</div>
+              </div>
             </div>
 
-            <canvas id="diceCanvas" width="900" height="350"></canvas>
-            <div style="text-align: center; margin-top: 10px; font-size: 0.9rem; color: #555;">
-                <span style="color: red; font-weight: bold;">[빨간 선]</span> 이론적 기댓값 (3.5) &nbsp; | &nbsp; 
-                <span style="color: blue; font-weight: bold;">[파란 선]</span> 현재 평균
+            <div class="divider"></div>
+
+            <div class="field">
+              <label>필수 안내 문구(설문 첫 화면에 넣기)</label>
+              <textarea>이 설문은 수업 프로젝트(학습 목적)로만 사용됩니다. 이름/연락처 등 개인정보는 수집하지 않습니다. 참여는 자발적이며 언제든 응답을 중단할 수 있습니다. 응답 내용은 익명으로 통계 처리됩니다.</textarea>
             </div>
-        </div>
 
-        <!-- Section 6: 분산/표준편차 공식 및 연습 (교과서 '스스로 확인하기') -->
-        <div class="card">
-            <h2>6. 📝 분산 V(X) 계산 연습 (스스로 확인하기)</h2>
-            
-            <h3>분산의 계산 공식</h3>
-            <p>
-                **분산 V(X) 계산 공식**: <span class="math-expr">V(X) = E(X&sup2;) - m&sup2;</span> <br>
-                (분산은 제곱의 기댓값에서 기댓값의 제곱을 뺀 값과 같습니다.)
-            </p>
+            <div class="divider"></div>
 
-            <h3>교과서 연습 문제</h3>
-            <p>
-                확률변수 X의 확률분포표: X=1(<span class="math-expr">P=1/4</span>), X=2(<span class="math-expr">P=1/2</span>), X=3(<span class="math-expr">P=1/4</span>)일 때,
-                아래 빈칸을 채워 분산 V(X)와 표준편차 <span class="math-expr">&sigma;</span>(X)를 구해 보세요.
-            </p>
-
-            <div class="practice-input-group" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
-                <label for="practiceE">E(X) = m =</label>
-                <input type="number" id="practiceE" placeholder="정답 (2)" step="0.1" style="flex: 1;">
+            <div class="hint" style="margin-bottom:10px;">
+              아래 표는 “설문 문항 설계”를 정리하는 칸입니다. 최소 8문항(권장) / 목표 변수 1개는 반드시 포함하세요.
             </div>
-             <div class="practice-input-group" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
-                <label for="practiceE2">E(X&sup2;) =</label>
-                <input type="number" id="practiceE2" placeholder="정답 (4.5)" step="0.5" style="flex: 1;">
-            </div>
-            <div class="practice-input-group" style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
-                <label for="practiceV">V(X) =</label>
-                <input type="number" id="practiceV" placeholder="정답 (0.5)" step="0.1" style="flex: 1;">
-            </div>
-            <button class="btn quiz-btn" id="checkPracticeBtn">정답 확인 및 풀이 보기</button>
-            <div class="quiz-feedback" id="practiceFeedback"></div>
-        </div>
 
-        <!-- Section 7: 최종 퀴즈 (염소 원자량) -->
-        <div class="card">
-            <h2>7. 💯 최종 점검: 염소 원자량 기댓값 E(X)</h2>
-            <p>
-                자연계 염소 원자는 원자량 35(<span class="math-expr">P=3/4</span>)와 원자량 37(<span class="math-expr">P=1/4</span>)로 존재합니다. 염소 원자량의 **기댓값 E(X) = m**은 얼마일까요?
-            </p>
-
-            <label for="quizAnswer" class="stat-label" style="display: block; margin-bottom: 5px;">정답 입력 (소수점 첫째 자리까지):</label>
-            <input type="number" id="quizAnswer" placeholder="예: 35.5" step="0.1">
-
-            <button class="btn quiz-btn" id="checkQuizBtn">정답 확인</button>
-            
-            <div class="quiz-feedback" id="quizFeedback"></div>
-        </div>
-        
-    </div>
-    
-    <!-- 8. Floating Chat Widget (화면 우측 하단에 고정되는 영역) -->
-    <div id="floating-chat-widget" class="closed">
-        <div id="chat-header">
-            🤖 AI 보조교사
-            <button id="close-chat-btn">X</button>
-        </div>
-        <div id="chatbox">
-             <!-- 초기 메시지 -->
-            <div class="message ai-message">
-                <div class="message-content">
-                    안녕하세요! 저는 여러분의 수학 학습을 돕는 AI 보조교사입니다. 기댓값이나 분산에 대해 궁금한 점이 있다면 언제든지 질문해 주세요. 😊
-                </div>
-            </div>
-        </div>
-        <div id="chat-input-container">
-            <input type="text" id="chatInput" placeholder="질문을 입력하세요 (예: 분산 공식이 2개인 이유가 뭐예요?)">
-            <button class="btn" id="sendButton">질문하기</button>
-        </div>
-    </div>
-    
-    <!-- 챗봇 토글 버튼 -->
-    <button id="chat-toggle-button">💬</button>
-
-    
-    <script>
-        // DOM 요소 참조
-        const conceptCanvas = document.getElementById('conceptCanvas');
-        const diceCanvas = document.getElementById('diceCanvas');
-        const rollDiceBtn = document.getElementById('rollDiceBtn');
-        const checkQuizBtn = document.getElementById('checkQuizBtn');
-        const quizAnswerInput = document.getElementById('quizAnswer');
-        const quizFeedbackDiv = document.getElementById('quizFeedback');
-        const trialCountEl = document.getElementById('trialCount');
-        const currentMeanEl = document.getElementById('currentMean');
-        const currentStdDevEl = document.getElementById('currentStdDev');
-        const checkPracticeBtn = document.getElementById('checkPracticeBtn');
-        const practiceFeedbackDiv = document.getElementById('practiceFeedback');
-        const meanFormulaEl = document.getElementById('meanFormula');
-        const diceOverlay = document.getElementById('diceOverlay');
-
-        // 신규 적용 문제 DOM 참조
-        const checkDiceSumBtn = document.getElementById('checkDiceSumBtn');
-        const diceSumAnswerInput = document.getElementById('diceSumAnswer');
-        const diceSumFeedbackDiv = document.getElementById('diceSumFeedback');
-        const checkCoinPrizeBtn = document.getElementById('checkCoinPrizeBtn');
-        const coinPrizeAnswerInput = document.getElementById('coinPrizeAnswer');
-        const coinPrizeFeedbackDiv = document.getElementById('coinPrizeFeedback');
-
-
-        // AI Chat DOM 참조
-        const floatingChatWidget = document.getElementById('floating-chat-widget');
-        const chatToggleBtn = document.getElementById('chat-toggle-button');
-        const closeChatBtn = document.getElementById('close-chat-btn');
-        const chatbox = document.getElementById('chatbox');
-        const chatInput = document.getElementById('chatInput');
-        const sendButton = document.getElementById('sendButton');
-
-        // --- 1. Canvas 1: 정적 개념 시각화 ---
-
-        function drawConceptCanvas() {
-            const ctx = conceptCanvas.getContext('2d');
-            const W = conceptCanvas.width;
-            const H = conceptCanvas.height;
-            const PADDING = 40;
-            const BAR_WIDTH = 20;
-            const NUM_POINTS = 10;
-            const MU = 0.5; // 평균 위치 (상대적)
-            const X_START = PADDING;
-            const X_END = W - PADDING;
-            const X_RANGE = X_END - X_START;
-
-            ctx.clearRect(0, 0, W, H);
-
-            // X축
-            ctx.beginPath();
-            ctx.moveTo(X_START, H - PADDING);
-            ctx.lineTo(X_END, H - PADDING);
-            ctx.strokeStyle = '#666';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            // 평균(m) 표시
-            const muX = X_START + MU * X_RANGE;
-            ctx.fillStyle = '#333';
-            ctx.fillRect(muX - 2, H - PADDING - 15, 4, 30);
-            ctx.font = '16px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('m', muX, H - 5);
-
-            // 가상 분포 데이터
-            const distA = [1, 2, 5, 8, 10, 8, 5, 2, 1, 0.5]; // 낮은 시그마 (초록)
-            const distB = [2, 3, 3, 4, 5, 5, 4, 3, 3, 2];   // 높은 시그마 (빨강)
-
-            const MAX_H = Math.max(10, ...distA, ...distB);
-            const HEIGHT_RANGE = H - 2 * PADDING;
-
-            // 분포 B (높은 σ) - 빨간색
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.4)'; 
-            for (let i = 0; i < NUM_POINTS; i++) {
-                const x = X_START + (i / (NUM_POINTS - 1)) * X_RANGE;
-                const h = (distB[i] / MAX_H) * HEIGHT_RANGE * 0.8;
-                ctx.fillRect(x - BAR_WIDTH / 2 - 5, H - PADDING - h, BAR_WIDTH, h);
-            }
-
-            // 분포 A (낮은 σ) - 초록색
-            ctx.fillStyle = 'rgba(0, 128, 0, 0.8)';
-            for (let i = 0; i < NUM_POINTS; i++) {
-                const x = X_START + (i / (NUM_POINTS - 1)) * X_RANGE;
-                const h = (distA[i] / MAX_H) * HEIGHT_RANGE * 0.9;
-                ctx.fillRect(x - BAR_WIDTH / 2, H - PADDING - h, BAR_WIDTH, h);
-            }
-        }
-
-        // --- 2. Canvas 2: 인터랙티브 실습 (큰 수의 법칙) ---
-
-        let diceData = []; 
-        let diceCounts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
-        const THEORETICAL_MEAN = 3.5;
-
-        // 통계 계산 함수
-        function calculateStats() {
-            const n = diceData.length;
-            if (n === 0) return { mean: 0, stdDev: 0 };
-
-            // 1. 평균 (Sample Mean)
-            const sumX = diceData.reduce((acc, val) => acc + val, 0);
-            const sampleMean = sumX / n;
-
-            // 2. 분산 및 표준편차
-            let sumX2Pi = 0;
-            const values = [1, 2, 3, 4, 5, 6];
-            
-            for (const x of values) {
-                const p = diceCounts[x] / n;
-                sumX2Pi += x * x * p; // E(X^2) 
-            }
-
-            const variance = sumX2Pi - (sampleMean * sampleMean);
-            const stdDev = Math.sqrt(Math.max(0, variance)); 
-
-            return { 
-                mean: sampleMean, 
-                stdDev: stdDev 
-            };
-        }
-        
-        // 주사위 평균 공식 업데이트 함수
-        function updateMeanFormula(n) {
-            if (n === 0) {
-                meanFormulaEl.innerHTML = `E(X) = &Sigma; (값 x 확률) = (1 x P(1) + 2 x P(2) + ... + 6 x P(6))`;
-                return;
-            }
-            
-            let formulaParts = [];
-            const values = [1, 2, 3, 4, 5, 6];
-            
-            for (const x of values) {
-                const count = diceCounts[x];
-                if (count > 0) {
-                    formulaParts.push(`${x} x (${count}/${n})`);
-                }
-            }
-            
-            let formulaText = formulaParts.join(' + ');
-            
-            // 평균 계산 과정이 길어지면 줄임말로 표시
-            if (formulaParts.length > 4) {
-                formulaText = formulaParts.slice(0, 2).join(' + ') + ` + <span class="math-expr">...</span> + ${formulaParts[formulaParts.length - 1]}`;
-            }
-
-            // 시그마 기호는 HTML 엔티티 (&Sigma;) 사용
-            meanFormulaEl.innerHTML = `<span class="math-expr">E(X) &asymp; &Sigma; xi pi</span> = <span class="math-expr">${formulaText}</span>`;
-        }
-
-
-        // 통계 결과 업데이트 및 Canvas 2 그리기
-        function updateDiceSimulation() {
-            const stats = calculateStats();
-            const n = diceData.length;
-
-            trialCountEl.textContent = n;
-            currentMeanEl.textContent = stats.mean.toFixed(3);
-            currentStdDevEl.textContent = stats.stdDev.toFixed(3);
-
-            drawDiceDistribution(n, stats.mean);
-            updateMeanFormula(n);
-        }
-        
-        // 주사위 굴림 모션 함수
-        function rollDiceMotion(callback) {
-            rollDiceBtn.disabled = true;
-            diceOverlay.style.display = 'flex';
-            
-            const rollText = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-            let rollCount = 0;
-            let lastRollValue = 0;
-
-            // 실제 주사위 굴림 값 저장
-            lastRollValue = Math.floor(Math.random() * 6) + 1;
-            diceData.push(lastRollValue);
-            diceCounts[lastRollValue]++;
-
-            const interval = setInterval(() => {
-                const randomDie = rollText[Math.floor(Math.random() * rollText.length)];
-                diceOverlay.textContent = randomDie;
-                rollCount++;
-
-                if (rollCount > 10) { // 10번 깜빡인 후 정지
-                    clearInterval(interval);
-                    // 실제 결과값으로 최종 주사위 모습 표시
-                    const finalRollIndex = lastRollValue - 1;
-                    diceOverlay.textContent = rollText[finalRollIndex]; 
-                    
-                    // 0.5초 후 사라지게
-                    setTimeout(() => {
-                        diceOverlay.style.display = 'none';
-                        rollDiceBtn.disabled = false;
-                        callback(); // 굴림 완료 후 실제 통계 업데이트
-                    }, 500);
-                }
-            }, 100);
-        }
-
-        // 주사위 던지기 이벤트 핸들러
-        function handleRollDice() {
-            rollDiceMotion(() => {
-                updateDiceSimulation();
-            });
-        }
-
-        // Canvas 2 분포 그리기 함수
-        function drawDiceDistribution(n, sampleMean) {
-            const ctx = diceCanvas.getContext('2d');
-            const W = diceCanvas.width;
-            const H = diceCanvas.height;
-            const PADDING_V = 40;
-            const PADDING_H = 30;
-            const CHART_H = H - 2 * PADDING_V;
-            const CHART_W = W - 2 * PADDING_H;
-            const BAR_GAP = 5;
-            const BAR_W = (CHART_W / 6) - BAR_GAP;
-
-            ctx.clearRect(0, 0, W, H);
-
-            const maxCount = Math.max(...Object.values(diceCounts));
-            const yMax = maxCount > 0 ? maxCount : 1;
-            
-            // Y축 (최대 카운트)
-            ctx.strokeStyle = '#999';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(PADDING_H, PADDING_V);
-            ctx.lineTo(PADDING_H, H - PADDING_V);
-            ctx.lineTo(W - PADDING_H, H - PADDING_V);
-            ctx.stroke();
-
-            ctx.font = '14px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#333';
-            
-            // 막대 그래프 및 X축 레이블
-            for (let i = 1; i <= 6; i++) {
-                const count = diceCounts[i];
-                const barHeight = (count / yMax) * CHART_H;
-                const x = PADDING_H + (i - 1) * (BAR_W + BAR_GAP) + BAR_GAP;
-
-                // 막대 그리기
-                ctx.fillStyle = 'rgba(0, 123, 255, 0.7)';
-                ctx.fillRect(x, H - PADDING_V - barHeight, BAR_W, barHeight);
-                
-                // 막대 상단 카운트 표시
-                ctx.fillStyle = '#333';
-                if (count > 0) {
-                     ctx.fillText(count, x + BAR_W / 2, H - PADDING_V - barHeight - 5);
-                }
-
-                // X축 레이블 
-                ctx.fillText(i, x + BAR_W / 2, H - PADDING_V + 18);
-            }
-            
-            // Y축 레이블 (최대 카운트)
-            ctx.textAlign = 'right';
-            ctx.fillText(yMax, PADDING_H - 5, PADDING_V + 5);
-
-            // --- 큰 수의 법칙 시각화 ---
-            
-            // 이론적 기댓값 (3.5) - 빨간 선
-            const theoreticalX = PADDING_H + (THEORETICAL_MEAN - 1) * (BAR_W + BAR_GAP) + BAR_GAP + BAR_W / 2;
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(theoreticalX, H - PADDING_V);
-            ctx.lineTo(theoreticalX, PADDING_V);
-            ctx.stroke();
-
-            // 현재 평균 (sampleMean) - 파란 선
-            if (n > 0) {
-                const sampleX = PADDING_H + (sampleMean - 1) * (BAR_W + BAR_GAP) + BAR_GAP + BAR_W / 2;
-                ctx.strokeStyle = 'blue';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(sampleX, H - PADDING_V);
-                ctx.lineTo(sampleX, PADDING_V);
-                ctx.stroke();
-            }
-        }
-
-        // --- 3. 신규 적용 문제 풀이 로직 ---
-        function checkDiceSum() {
-            const userAnswer = parseFloat(diceSumAnswerInput.value);
-            const correctAnswer = 7;
-            
-            diceSumFeedbackDiv.className = 'quiz-feedback';
-            diceSumFeedbackDiv.innerHTML = '';
-
-            if (isNaN(userAnswer)) {
-                diceSumFeedbackDiv.classList.add('incorrect');
-                diceSumFeedbackDiv.innerHTML = "정답을 숫자로 입력해 주세요.";
-                return;
-            }
-
-            if (Math.abs(userAnswer - correctAnswer) < 0.001) { 
-                diceSumFeedbackDiv.classList.add('correct');
-                diceSumFeedbackDiv.innerHTML = `
-                    <strong>🎉 정답입니다!</strong><br>
-                    <strong>풀이 과정:</strong>
-                    <div class="formula-display" style="text-align: left; margin-top: 10px;">
-                        E(X) <span class="math-expr">= 2x(1/36) + 3x(2/36) + ... + 12x(1/36)</span><br>
-                        E(X) <span class="math-expr">= (2+6+12+20+30+42+40+36+30+22+12) / 36</span><br>
-                        E(X) <span class="math-expr">= 252 / 36 = 7</span>
+            <table aria-label="설문 문항 설계표">
+              <thead>
+                <tr>
+                  <th style="width:30%;">문항 내용</th>
+                  <th style="width:22%;">변수 유형(체크)</th>
+                  <th style="width:28%;">선택 이유</th>
+                  <th style="width:20%;">비고(선택지/범위)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="small">예시</div>
+                    하루 평균 공부 시간(시간)
+                  </td>
+                  <td>
+                    □ 명목 &nbsp; □ 서열 &nbsp; □ 구간 &nbsp; ☑ 비율
+                  </td>
+                  <td>0이 의미가 있고 비율 비교가 가능</td>
+                  <td>0~12시간</td>
+                </tr>
+                <tr>
+                  <td><input type="text" placeholder="문항 1" /></td>
+                  <td>
+                    <div class="checks">
+                      <label><input type="checkbox">명목</label>
+                      <label><input type="checkbox">서열</label>
+                      <label><input type="checkbox">구간</label>
+                      <label><input type="checkbox">비율</label>
                     </div>
-                `;
-            } else {
-                diceSumFeedbackDiv.classList.add('incorrect');
-                diceSumFeedbackDiv.innerHTML = "다시 시도해 보세요. 각 확률변수(눈의 합)에 해당하는 확률을 곱해서 모두 더해보세요.";
-            }
-        }
-
-        function checkCoinPrize() {
-            const userAnswer = parseFloat(coinPrizeAnswerInput.value);
-            const correctAnswer = 300;
-
-            coinPrizeFeedbackDiv.className = 'quiz-feedback';
-            coinPrizeFeedbackDiv.innerHTML = '';
-
-            if (isNaN(userAnswer)) {
-                coinPrizeFeedbackDiv.classList.add('incorrect');
-                coinPrizeFeedbackDiv.innerHTML = "정답을 숫자로 입력해 주세요.";
-                return;
-            }
-
-            if (Math.abs(userAnswer - correctAnswer) < 0.001) { 
-                coinPrizeFeedbackDiv.classList.add('correct');
-                coinPrizeFeedbackDiv.innerHTML = `
-                    <strong>🎉 정답입니다!</strong><br>
-                    <strong>풀이 과정:</strong>
-                    <div class="formula-display" style="text-align: left; margin-top: 10px;">
-                        E(Y) <span class="math-expr">= 0x(1/8) + 100x(3/8) + 400x(3/8) + 900x(1/8)</span><br>
-                        E(Y) <span class="math-expr">= (0+300+1200+900) / 8</span><br>
-                        E(Y) <span class="math-expr">= 2400 / 8 = 300</span>원
+                  </td>
+                  <td><input type="text" placeholder="왜 이 유형이 적절한지" /></td>
+                  <td><input type="text" placeholder="선택지/범위" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" placeholder="문항 2" /></td>
+                  <td>
+                    <div class="checks">
+                      <label><input type="checkbox">명목</label>
+                      <label><input type="checkbox">서열</label>
+                      <label><input type="checkbox">구간</label>
+                      <label><input type="checkbox">비율</label>
                     </div>
-                `;
-            } else {
-                coinPrizeFeedbackDiv.classList.add('incorrect');
-                coinPrizeFeedbackDiv.innerHTML = "다시 시도해 보세요. 각 상금에 해당하는 확률을 곱해서 모두 더해보세요.";
-            }
-        }
+                  </td>
+                  <td><input type="text" placeholder="선택 이유" /></td>
+                  <td><input type="text" placeholder="선택지/범위" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" placeholder="문항 3" /></td>
+                  <td>
+                    <div class="checks">
+                      <label><input type="checkbox">명목</label>
+                      <label><input type="checkbox">서열</label>
+                      <label><input type="checkbox">구간</label>
+                      <label><input type="checkbox">비율</label>
+                    </div>
+                  </td>
+                  <td><input type="text" placeholder="선택 이유" /></td>
+                  <td><input type="text" placeholder="선택지/범위" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" placeholder="문항 4" /></td>
+                  <td>
+                    <div class="checks">
+                      <label><input type="checkbox">명목</label>
+                      <label><input type="checkbox">서열</label>
+                      <label><input type="checkbox">구간</label>
+                      <label><input type="checkbox">비율</label>
+                    </div>
+                  </td>
+                  <td><input type="text" placeholder="선택 이유" /></td>
+                  <td><input type="text" placeholder="선택지/범위" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" placeholder="문항 5" /></td>
+                  <td>
+                    <div class="checks">
+                      <label><input type="checkbox">명목</label>
+                      <label><input type="checkbox">서열</label>
+                      <label><input type="checkbox">구간</label>
+                      <label><input type="checkbox">비율</label>
+                    </div>
+                  </td>
+                  <td><input type="text" placeholder="선택 이유" /></td>
+                  <td><input type="text" placeholder="선택지/범위" /></td>
+                </tr>
+              </tbody>
+            </table>
 
+            <div class="hint">
+              ※ 목표 변수(예측할 것)는 표 안에서 별표(★)로 표시하거나, 아래 칸에 따로 적으세요.
+            </div>
 
-        // --- 4. 연습 문제 풀이 로직 (스스로 확인하기) ---
-        function checkPractice() {
-            const E = parseFloat(document.getElementById('practiceE').value);
-            const E2 = parseFloat(document.getElementById('practiceE2').value);
-            const V = parseFloat(document.getElementById('practiceV').value);
-            
-            const correctE = 2.0;
-            const correctE2 = 4.5;
-            const correctV = 0.5;
-            const correctSigma = Math.sqrt(0.5);
+            <div class="grid" style="margin-top:12px;">
+              <div class="field">
+                <label>목표 변수(예측하고 싶은 결과) 이름</label>
+                <input type="text" placeholder="예: 학교생활 만족도(높/중/낮)" />
+              </div>
+              <div class="field">
+                <label>목표 변수의 형태</label>
+                <div class="checks">
+                  <label><input type="checkbox">분류(범주 예측)</label>
+                  <label><input type="checkbox">회귀(숫자 예측)</label>
+                </div>
+                <div class="hint">분류: 만족도/합격 여부/선호 유형 등 · 회귀: 점수/시간/횟수 등</div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-            let isCorrect = true;
-            let feedbackText = "<strong>풀이 과정:</strong><br>";
+        <!-- 4 -->
+        <section>
+          <div class="hd">
+            <div>
+              <h2>4. 데이터 전처리 계획</h2>
+              <div class="sub">결측치·이상치 처리, 변수 선택/변환 계획을 체크리스트로 정리</div>
+            </div>
+            <span class="badge">필수</span>
+          </div>
+          <div class="bd">
+            <div class="field">
+              <label>전처리 원칙(짧게)</label>
+              <textarea placeholder="예: 설문 응답이 너무 비어있는 행은 제외하고, 나머지는 중앙값/최빈값으로 보완한다."></textarea>
+            </div>
 
-            if (Math.abs(E - correctE) < 0.001) {
-                feedbackText += `<span style="color: green;">✔ E(X) = 1 x 1/4 + 2 x 1/2 + 3 x 1/4 = ${correctE}</span><br>`;
-            } else {
-                feedbackText += `<span style="color: red;">✘ E(X) 정답: ${correctE} (계산 오류)</span><br>`;
-                isCorrect = false;
-            }
+            <div class="divider"></div>
 
-            if (Math.abs(E2 - correctE2) < 0.001) {
-                feedbackText += `<span style="color: green;">✔ E(X&sup2;) = 1&sup2; x 1/4 + 2&sup2; x 1/2 + 3&sup2; x 1/4 = ${correctE2}</span><br>`;
-            } else {
-                feedbackText += `<span style="color: red;">✘ E(X&sup2;) 정답: ${correctE2} (계산 오류)</span><br>`;
-                isCorrect = false;
-            }
+            <div class="field">
+              <label>결측치 처리(체크)</label>
+              <div class="checks">
+                <label><input type="checkbox">결측치가 많은 행/열 삭제</label>
+                <label><input type="checkbox">평균으로 대체</label>
+                <label><input type="checkbox">중앙값으로 대체</label>
+                <label><input type="checkbox">최빈값(가장 많은 값)으로 대체</label>
+                <label><input type="checkbox">‘응답 안 함’(별도 범주)로 처리</label>
+              </div>
+              <div class="hint">어떤 방법을 쓸지, 왜 그 방법이 합리적인지 아래에 적으세요.</div>
+              <textarea placeholder="결측치 처리 이유/기준: 예) 결측이 30% 이상인 문항은 분석에서 제외"></textarea>
+            </div>
 
-            if (Math.abs(V - correctV) < 0.001) {
-                feedbackText += `<span style="color: green;">✔ V(X) = E(X&sup2;) - m&sup2; = 4.5 - 2&sup2; = ${correctV}</span><br>`;
-            } else {
-                feedbackText += `<span style="color: red;">✘ V(X) 정답: ${correctV} (공식 적용 오류)</span><br>`;
-                isCorrect = false;
-            }
-            
-            // 표준편차 표시도 일반 텍스트와 HTML 엔티티 조합으로 변경
-            feedbackText += `<br>따라서 표준편차 <span class="math-expr">&sigma;</span>(X) = <span class="math-expr">&radic;0.5</span> &asymp; ${correctSigma.toFixed(4)}`;
+            <div class="divider"></div>
 
+            <div class="grid">
+              <div class="field">
+                <label>이상치 처리(체크)</label>
+                <div class="checks">
+                  <label><input type="checkbox">이상치 제거</label>
+                  <label><input type="checkbox">이상치 유지(현실의 다양성 반영)</label>
+                  <label><input type="checkbox">상한/하한으로 잘라내기(윈저라이징)</label>
+                  <label><input type="checkbox">이상치 기준을 설정해 표기만 함</label>
+                </div>
+                <textarea placeholder="이상치 기준: 예) 수면 시간이 0시간 또는 16시간 이상은 재확인/제외"></textarea>
+              </div>
+              <div class="field">
+                <label>변수 선택 및 변환(체크)</label>
+                <div class="checks">
+                  <label><input type="checkbox">목표 변수와 직접 관련 있는 변수만 사용</label>
+                  <label><input type="checkbox">문자(범주) → 숫자(인코딩) 변환</label>
+                  <label><input type="checkbox">구간화(예: 0~2, 3~5, 6~8시간)</label>
+                  <label><input type="checkbox">불필요한 컬럼(시간/중복) 삭제</label>
+                </div>
+                <textarea placeholder="선택/변환할 변수 목록: 예) 공부시간, 수면시간, 스마트폰시간, 운동여부 등"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
 
-            practiceFeedbackDiv.className = 'quiz-feedback';
-            if (isCorrect) {
-                practiceFeedbackDiv.classList.add('correct');
-                practiceFeedbackDiv.innerHTML = "<strong>모든 계산이 정확합니다!</strong> " + feedbackText;
-            } else {
-                practiceFeedbackDiv.classList.add('incorrect');
-                practiceFeedbackDiv.innerHTML = "<strong>일부 계산이 틀렸습니다.</strong> 풀이 과정을 확인하세요.<br>" + feedbackText;
-            }
-        }
+        <!-- 5 -->
+        <section>
+          <div class="hd">
+            <div>
+              <h2>5. Orange3 분석·예측 계획</h2>
+              <div class="sub">사용 위젯, 목표 변수, 모델, 평가 기준을 구체적으로 적기</div>
+            </div>
+            <span class="badge">필수</span>
+          </div>
+          <div class="bd">
+            <div class="field">
+              <label>사용할 위젯(체크)</label>
+              <div class="checks">
+                <label><input type="checkbox">File</label>
+                <label><input type="checkbox">Select Columns</label>
+                <label><input type="checkbox">Impute</label>
+                <label><input type="checkbox">Data Table</label>
+                <label><input type="checkbox">Distributions</label>
+                <label><input type="checkbox">Scatter Plot</label>
+                <label><input type="checkbox">Tree</label>
+                <label><input type="checkbox">Logistic Regression</label>
+                <label><input type="checkbox">kNN</label>
+                <label><input type="checkbox">Naive Bayes</label>
+                <label><input type="checkbox">Test & Score</label>
+                <label><input type="checkbox">Confusion Matrix</label>
+              </div>
+              <div class="hint">권장 기본 흐름: File → Select Columns → (Impute) → 모델(Tree 등) → Test & Score → Confusion Matrix</div>
+            </div>
 
+            <div class="divider"></div>
 
-        // --- 5. 최종 퀴즈 로직 (염소 원자량) ---
-        function checkQuizAnswer() {
-            const userAnswer = parseFloat(quizAnswerInput.value);
-            const correctAnswer = 35.5;
-            
-            quizFeedbackDiv.className = 'quiz-feedback';
-            quizFeedbackDiv.innerHTML = '';
+            <div class="grid">
+              <div class="field">
+                <label>예측 목표 변수(Orange3에서 Target으로 설정할 것)</label>
+                <input type="text" placeholder="예: 만족도(높/중/낮)" />
+              </div>
+              <div class="field">
+                <label>사용할 모델(최소 1개 이상)</label>
+                <input type="text" placeholder="예: Tree(의사결정나무) + Logistic Regression 비교" />
+              </div>
+            </div>
 
-            if (isNaN(userAnswer)) {
-                quizFeedbackDiv.classList.add('incorrect');
-                quizFeedbackDiv.innerHTML = "정답을 숫자로 입력해 주세요.";
-                return;
-            }
+            <div class="divider"></div>
 
-            if (Math.abs(userAnswer - correctAnswer) < 0.001) { 
-                quizFeedbackDiv.classList.add('correct');
-                quizFeedbackDiv.innerHTML = `
-                    <strong>🎉 정답입니다!</strong><br>
-                    풀이: E(X) = m = (35 x 3/4) + (37 x 1/4) = (105/4) + (37/4) = 35.5
-                `;
-            } else {
-                quizFeedbackDiv.classList.add('incorrect');
-                // 시그마 기호는 HTML 엔티티 (&Sigma;)로 변경
-                quizFeedbackDiv.innerHTML = "다시 시도해 보세요. 각 원자량에 확률을 곱하는 기댓값 공식 (<span class='math-expr'>E(X) = &Sigma; xi pi</span>)을 떠올리세요!";
-            }
-        }
+            <div class="field">
+              <label>모델 평가 기준(체크)</label>
+              <div class="checks">
+                <label><input type="checkbox">정확도(Accuracy)</label>
+                <label><input type="checkbox">정밀도(Precision)</label>
+                <label><input type="checkbox">재현율(Recall)</label>
+                <label><input type="checkbox">F1-score</label>
+                <label><input type="checkbox">AUC</label>
+              </div>
+              <textarea placeholder="우리 팀이 중요하게 보는 기준과 이유: 예) ‘낮은 만족도’를 놓치면 안 되므로 재현율을 중요하게 본다."></textarea>
+            </div>
+          </div>
+        </section>
 
-        // --- 6. AI 보조교사 (Gemini ) 로직 (통합 수정본) ---
-const apiKey = "AIzaSyAl2vvp8QTFE_EULTu0qM0UZyeo9R_yDdU"; 
-const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        <!-- 6 -->
+        <section>
+          <div class="hd">
+            <div>
+              <h2>6. Antigravity 결과물 설계</h2>
+              <div class="sub">프로그램/웹 선택, 예측 결과를 어떻게 보여줄지 구체화</div>
+            </div>
+            <span class="badge">필수</span>
+          </div>
+          <div class="bd">
+            <div class="grid">
+              <div class="field">
+                <label>제작 유형(체크)</label>
+                <div class="checks">
+                  <label><input type="checkbox">프로그램(로컬 실행)</label>
+                  <label><input type="checkbox">웹사이트(브라우저)</label>
+                </div>
+                <div class="hint">웹사이트는 친구들이 쉽게 체험하기 좋아요.</div>
+              </div>
+              <div class="field">
+                <label>사용자(체험자) 입력값</label>
+                <textarea placeholder="예: 공부시간, 수면시간, 스마트폰사용시간을 입력하면…"></textarea>
+              </div>
+            </div>
 
-// **강력하게 강화된 시스템 프롬프트: 모든 LaTeX/MathJax/복잡 기호 절대 금지 + 단계 형식 강제**
-const systemPrompt = `
-You are a friendly, patient AI teaching assistant for high school probability/statistics. Always reply in Korean.
+            <div class="divider"></div>
 
-[ABSOLUTE RULES FOR OUTPUT]
-- DO NOT use any LaTeX/MathJax or delimiters ($, $$, \\(, \\), \\begin, \\frac, \\cdot, \\text, \\times, \\Sigma, etc).
-- Use only plain Korean text, simple symbols (x for multiply, / for fractions, +, -, 제곱), or safe HTML entities (&times;, &Sigma;, &radic;).
-- Write the answer as a sequence of short steps.
-- STRICT FORMAT:
-  [STEP 1] ... 
-  [STEP 2] ...
-  (추가 단계가 있으면 계속)
-  [END]
+            <div class="field">
+              <label>예측 결과를 어떻게 시각화·활용할까?</label>
+              <div class="checks">
+                <label><input type="checkbox">예측 결과(범주/값) 크게 표시</label>
+                <label><input type="checkbox">확률(예: 만족도 ‘높음’ 확률 0.72) 표시</label>
+                <label><input type="checkbox">중요 변수(영향이 큰 요인) 설명</label>
+                <label><input type="checkbox">간단한 그래프(막대/원/분포) 표시</label>
+                <label><input type="checkbox">개선 제안(해석 기반 코멘트)</label>
+              </div>
+              <textarea placeholder="예: 입력값에 따라 ‘높/중/낮’ 확률을 막대그래프로 보여주고, Tree에서 중요한 분기 기준을 설명한다."></textarea>
+            </div>
+          </div>
+        </section>
 
-각 단계는 1~3문장으로 짧고 명확하게 쓰고, 고등학교 교과서 수준의 표기(E(X), Var(X), σ 등)를 사용하되 LaTeX는 절대 쓰지 말 것.
-예시(형식): 
-[STEP 1] 문제에서 확률변수 X의 가능한 값을 확인한다.
-[STEP 2] E(X) = 각 값 × 그 값의 확률을 모두 더한다.
-[END]
-`;
+        <!-- 7 -->
+        <section>
+          <div class="hd">
+            <div>
+              <h2>7. 통계 개념 적용 및 기대 효과</h2>
+              <div class="sub">“확률·통계 개념”과 프로젝트를 연결해서 의미를 설명</div>
+            </div>
+            <span class="badge">필수</span>
+          </div>
+          <div class="bd">
+            <div class="field">
+              <label>이 프로젝트에서 활용한 확률·통계 개념(체크)</label>
+              <div class="checks">
+                <label><input type="checkbox">자료의 정리(표/그래프)</label>
+                <label><input type="checkbox">평균·중앙값·분산</label>
+                <label><input type="checkbox">상관관계(관련성)</label>
+                <label><input type="checkbox">표본과 모집단(표본의 한계)</label>
+                <label><input type="checkbox">조건부확률/분류 개념</label>
+                <label><input type="checkbox">예측의 불확실성(오차)</label>
+              </div>
+            </div>
 
-let chatHistory = [];
-let isGenerating = false;
-let lastUserMessageId = 0; // for managing history in case of error
+            <div class="divider"></div>
 
-// --- LaTeX/MathJax 및 특수기호 정리 함수 ---
-function cleanMathSyntax(text) {
-  return text
-    // 수식 구분자/inline 제거
-    .replace(/\$\$/g, "")
-    .replace(/\$([^$]+)\$/g, "$1")
-    .replace(/\\\(|\\\)/g, "")
-    // \text{...} 등 일반 텍스트로
-    .replace(/\\text\{([^}]*)\}/g, "$1")
-    // 연산/기호 치환
-    .replace(/\\times/g, "×")
-    .replace(/\\cdot/g, "×")
-    .replace(/\\div/g, "÷")
-    .replace(/\\pm/g, "±")
-    .replace(/\\leq/g, "≤")
-    .replace(/\\geq/g, "≥")
-    .replace(/\\ne/g, "≠")
-    .replace(/\\approx/g, "≈")
-    // 그리스 문자
-    .replace(/\\sigma/g, "σ")
-    .replace(/\\Sigma/g, "Σ")
-    .replace(/\\mu/g, "μ")
-    .replace(/\\pi/g, "π")
-    // 제곱근/분수 간단화
-    .replace(/\\sqrt\{([^}]*)\}/g, "√($1)")
-    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "($1 ÷ $2)")
-    // 남은 백슬래시 명령 제거
-    .replace(/\\[a-zA-Z]+/g, "")
-    // 첨자(간단 처리)
-    .replace(/_{(\w+)}/g, "₍$1₎")
-    .replace(/\^{(\w+)}/g, "⁽$1⁾")
-    // 자잘한 정리
-    .replace(/\*/g, "×")
-    .replace(/==/g, "=")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-}
+            <div class="grid">
+              <div class="field">
+                <label>결과 해석(통계적으로 알 수 있었던 점)</label>
+                <textarea placeholder="예: 공부시간과 만족도는 약한 양의 관계가 있었고, 수면 시간이 너무 적을 때 만족도가 낮아지는 경향이 보였다."></textarea>
+              </div>
+              <div class="field">
+                <label>기대 효과(학교/학생에게 어떤 도움이 되나?)</label>
+                <textarea placeholder="예: 학생들이 생활 습관을 점검하고, 데이터를 근거로 개선 방향을 찾는 데 도움을 준다."></textarea>
+              </div>
+            </div>
 
-// --- 단계별 표시를 위한 전역 큐 ---
-let stepQueue = [];
+            <div class="hint">※ “상관관계 = 인과관계”는 아님을 꼭 언급하세요(통계 해석의 핵심).</div>
+          </div>
+        </section>
 
-// [STEP n] ... [END] 형식 파서
-function parseSteps(text) {
-  const untilEnd = text.split(/\[END\]/i)[0] || text;
-  const parts = untilEnd.split(/\[STEP\s*\d+\]\s*/i).map(s => s.trim()).filter(Boolean);
-  return parts;
-}
+        <!-- 8 -->
+        <section>
+          <div class="hd">
+            <div>
+              <h2>8. 데이터 윤리 서약</h2>
+              <div class="sub">개인정보 보호와 학습 목적 사용을 체크</div>
+            </div>
+            <span class="badge">필수</span>
+          </div>
+          <div class="bd">
+            <div class="checks" style="padding:0;">
+              <span class="pill"><input type="checkbox">개인정보(이름/연락처/학번 등)를 수집하지 않았다.</span>
+              <span class="pill"><input type="checkbox">설문 참여는 자발적이며 중단 가능함을 안내했다.</span>
+              <span class="pill"><input type="checkbox">수집 데이터는 수업(학습) 목적 외 사용하지 않는다.</span>
+              <span class="pill"><input type="checkbox">공유/발표 시 개인이 추정되는 정보는 제거한다.</span>
+              <span class="pill"><input type="checkbox">결과를 과장하지 않고 한계(표본/오차)를 함께 제시한다.</span>
+            </div>
 
-// "다음 단계" 버튼 보이기/숨기기
-function ensureNextStepButton() {
-  let nextBtn = document.getElementById('nextStepBtn');
-  if (!nextBtn) {
-    nextBtn = document.createElement('button');
-    nextBtn.id = 'nextStepBtn';
-    nextBtn.textContent = '다음 단계 ▶';
-    nextBtn.className = 'next-step-btn';
-    // sendButton 기준으로 옆에 붙이기 (없으면 chatbox 아래)
-    if (typeof sendButton !== 'undefined' && sendButton && sendButton.parentNode) {
-      sendButton.parentNode.appendChild(nextBtn);
-    } else if (typeof chatbox !== 'undefined' && chatbox && chatbox.parentNode) {
-      chatbox.parentNode.appendChild(nextBtn);
-    } else {
-      document.body.appendChild(nextBtn);
+            <div class="divider"></div>
+
+            <div class="sig">
+              <div class="field">
+                <label>팀 대표 서명</label>
+                <input type="text" placeholder="서명" />
+              </div>
+              <div class="field">
+                <label>날짜</label>
+                <input type="text" placeholder="예: 2025-12-18" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9 -->
+        <section>
+          <div class="hd">
+            <div>
+              <h2>9. 자기 평가 및 팀 평가</h2>
+              <div class="sub">과정 중심(역할·협업·개선점)으로 작성</div>
+            </div>
+            <span class="badge">필수</span>
+          </div>
+          <div class="bd">
+            <div class="grid">
+              <div class="field">
+                <label>① 내가 맡은 역할과 기여(구체적으로)</label>
+                <textarea placeholder="예: 설문 문항을 만들고, 응답 데이터를 CSV로 정리했다. 결측치 기준을 팀과 합의해 처리했다."></textarea>
+              </div>
+              <div class="field">
+                <label>② 어려웠던 점과 해결 방법</label>
+                <textarea placeholder="예: 표본이 적어 정확도가 낮았다 → 문항을 줄이고 대상 범위를 넓혀 추가 응답을 받았다."></textarea>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="grid">
+              <div class="field">
+                <label>③ 팀 협업에서 잘 된 점(근거 포함)</label>
+                <textarea placeholder="예: 역할 분담이 명확했고, 매 시간 체크리스트로 진행 상황을 공유했다."></textarea>
+              </div>
+              <div class="field">
+                <label>④ 다음 프로젝트에서 개선할 점</label>
+                <textarea placeholder="예: 처음부터 목표 변수를 더 명확히 정하고, 문항 수를 줄여 응답 품질을 높이겠다."></textarea>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="field">
+              <label>⑤ 팀원 상호 평가(간단)</label>
+              <textarea placeholder="예: 팀원별로 가장 큰 기여 1가지씩 적기(칭찬 + 개선점 1개)"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <div class="hint" style="margin-top:14px;">
+          제출 전 확인: (1) 목표 변수는 1개 이상인가? (2) 개인정보 문항은 없는가? (3) 전처리·평가 기준이 구체적인가? (4) 통계 개념과 연결이 있는가?
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Optional: basic reset (does not affect browser autofill)
+    function resetForm(){
+      if(!confirm("작성한 내용을 모두 지울까요? (브라우저에 따라 일부 입력은 남을 수 있어요)")) return;
+      document.querySelectorAll('input[type="text"], input[type="number"]').forEach(i => i.value = "");
+      document.querySelectorAll('textarea').forEach(t => t.value = "");
+      document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+      window.scrollTo({top:0, behavior:"smooth"});
     }
-    nextBtn.addEventListener('click', handleNextStepClick);
-  }
-  nextBtn.style.display = stepQueue.length > 0 ? 'inline-block' : 'none';
-}
-
-// 버튼 클릭 시 다음 단계 한 개만 출력
-function handleNextStepClick() {
-  if (!stepQueue.length) {
-    ensureNextStepButton();
-    return;
-  }
-  const step = stepQueue.shift();
-  addMessage('model', step);
-  ensureNextStepButton();
-}
-
-// 지수 백오프를 이용한 fetch 함수
-async function fetchWithBackoff(url, options, maxRetries = 5) {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      const response = await fetch(url, options);
-      if (response.ok) {
-        return response;
-      }
-      if (response.status === 429 && attempt < maxRetries - 1) { // Rate Limit
-        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        continue;
-      }
-      throw new Error(`API response failed with status ${response.status}`);
-    } catch (error) {
-      if (attempt === maxRetries - 1) {
-        throw error;
-      }
-      const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-}
-
-// 메시지를 UI에 추가하는 함수 (기존 그대로 사용)
-function addMessage(role, text) {
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('message', role === 'user' ? 'user-message' : 'ai-message');
-  
-  const contentElement = document.createElement('div');
-  contentElement.classList.add('message-content');
-  
-  // 텍스트를 마크다운 형식으로 파싱하여 HTML로 변환
-  contentElement.innerHTML = parseMarkdown(text); 
-  
-  messageElement.appendChild(contentElement);
-  chatbox.appendChild(messageElement);
-  chatbox.scrollTop = chatbox.scrollHeight; // 스크롤 하단으로 이동
-  
-  return messageElement;
-}
-
-// 로딩 메시지 추가/제거 (기존 그대로 사용)
-function addLoadingMessage() {
-  const loadingMessage = addMessage('ai', '');
-  loadingMessage.id = 'loadingMessage';
-  loadingMessage.querySelector('.message-content').innerHTML = `
-      <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
-  `;
-}
-function removeLoadingMessage() {
-  const loadingEl = document.getElementById('loadingMessage');
-  if (loadingEl) {
-    loadingEl.remove();
-  }
-}
-
-// 간단한 마크다운 파싱 (볼드체, 줄바꿈) (기존 그대로 사용)
-function parseMarkdown(text) {
-  let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // **볼드체**
-  html = html.replace(/\n/g, '<br>'); // 줄바꿈
-  return html;
-}
-
-// AI에게 질문을 보내는 함수 (단계형 출력 적용)
-async function sendMessage() {
-  if (isGenerating) return;
-  const query = chatInput.value.trim();
-  if (!query) return;
-
-  // 1. UI에 사용자 메시지 추가
-  addMessage('user', query);
-  chatInput.value = '';
-  
-  // 2. API 호출 준비
-  lastUserMessageId = chatHistory.length; // Save index before pushing
-  chatHistory.push({ role: "user", parts: [{ text: query }] });
-  isGenerating = true;
-  sendButton.disabled = true;
-  addLoadingMessage();
-
-  const payload = {
-    contents: chatHistory,
-    systemInstruction: {
-      parts: [{ text: systemPrompt }]
-    }
-  };
-  
-  let aiResponseText = "죄송해요, 답변을 생성하는 데 문제가 발생했습니다. 다시 시도해 주세요.";
-
-  try {
-    const response = await fetchWithBackoff(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const result = await response.json();
-    const candidate = result.candidates?.[0];
-
-    if (candidate && candidate.content?.parts?.[0]?.text) {
-      aiResponseText = candidate.content.parts[0].text;
-
-      // 1) 수식/기호 정리
-      aiResponseText = cleanMathSyntax(aiResponseText);
-
-      // 2) 단계 파싱
-      const steps = parseSteps(aiResponseText);
-
-      // 3) 단계 큐에 적재
-      stepQueue = steps.slice();
-
-      // 4) 채팅기록 저장(정제본 전체)
-      chatHistory.push({ role: "model", parts: [{ text: aiResponseText }] });
-    }
-
-    // 4. UI 업데이트
-    removeLoadingMessage();
-
-    // 단계가 있으면 첫 단계만 즉시 출력, 나머지는 버튼으로 진행
-    if (stepQueue.length > 0) {
-      const first = stepQueue.shift();
-      addMessage('model', first);
-      ensureNextStepButton(); // '다음 단계' 버튼 표시
-    } else {
-      // 단계 형식이 아닐 때의 안전장치: 전체 문장 출력
-      addMessage('model', aiResponseText);
-    }
-
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    removeLoadingMessage();
-    addMessage('model', "죄송합니다. 네트워크 문제 또는 서버 오류로 인해 답변을 가져올 수 없습니다. 다시 시도해 주세요.");
-    
-    // 에러 발생 시 히스토리에서 마지막 사용자 메시지를 제거 (재시도를 위해)
-    if (chatHistory.length > lastUserMessageId) {
-      chatHistory.pop(); 
-    }
-  } finally {
-    isGenerating = false;
-    sendButton.disabled = false;
-  }
-}
-
-// --- 7. 초기화 및 반응형 처리 ---
-
-// 캔버스 크기 조정 및 그리기 (기존 그대로 사용)
-function initCanvasSize() {
-  // 부모 요소의 너비를 확인하여 캔버스 너비 설정
-  const parentWidth = conceptCanvas.parentElement.clientWidth;
-  
-  // Canvas 높이 설정 (가로 폭에 맞춰 비율 유지)
-  // 최소 250px, 최대 400px을 넘지 않도록 설정
-  const conceptHeight = Math.min(300, Math.max(250, 0.4 * parentWidth)); 
-  const diceHeight = Math.min(400, Math.max(300, 0.5 * parentWidth));
-
-  conceptCanvas.width = parentWidth;
-  conceptCanvas.height = conceptHeight;
-  diceCanvas.width = parentWidth;
-  diceCanvas.height = diceHeight;
-
-  // 주사위 오버레이 크기도 캔버스와 동일하게 설정
-  diceOverlay.style.height = `${diceHeight}px`;
-
-  drawConceptCanvas();
-  drawDiceDistribution(diceData.length, calculateStats().mean);
-}
-
-// 챗 위젯 토글 함수 (기존 그대로 사용)
-function toggleChatWidget() {
-  floatingChatWidget.classList.toggle('closed');
-  if (!floatingChatWidget.classList.contains('closed')) {
-    // 채팅창 열 때 스크롤 및 포커스
-    chatbox.scrollTop = chatbox.scrollHeight;
-    chatInput.focus();
-    // 챗봇 버튼을 닫기 버튼 모양으로 변경 (X)
-    chatToggleBtn.innerHTML = 'X';
-  } else {
-      // 챗봇 버튼을 다시 채팅 아이콘으로 변경
-    chatToggleBtn.innerHTML = '💬';
-  }
-}
-
-// 초기화 함수 (기존 그대로 사용)
-function init() {
-  initCanvasSize(); 
-  updateDiceSimulation(); 
-  floatingChatWidget.classList.add('closed'); // 초기에는 닫힌 상태로 시작
-}
-
-
-
-        // --- 8. 이벤트 리스너 연결 및 초기 실행 ---
-
-        document.addEventListener('DOMContentLoaded', function() {
-            init();
-
-            // 이벤트 연결
-            rollDiceBtn.addEventListener('click', handleRollDice);
-            checkQuizBtn.addEventListener('click', checkQuizAnswer);
-            checkPracticeBtn.addEventListener('click', checkPractice);
-            
-            // 신규 적용 문제 이벤트 연결
-            checkDiceSumBtn.addEventListener('click', checkDiceSum);
-            checkCoinPrizeBtn.addEventListener('click', checkCoinPrize);
-            
-            // AI 챗봇 이벤트 연결
-            chatToggleBtn.addEventListener('click', toggleChatWidget);
-            closeChatBtn.addEventListener('click', toggleChatWidget);
-            sendButton.addEventListener('click', sendMessage);
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-
-            // 반응형 리사이즈 처리 (iPad/모바일 환경에서 크기 변경 시 대응)
-            window.addEventListener('resize', initCanvasSize);
-            // 아이패드 화면 방향 전환(orientationchange)에도 대응
-            window.addEventListener('orientationchange', initCanvasSize); 
-        });
-        
-    </script>
+  </script>
 </body>
 </html>
+"""
 
+path = Path("/mnt/data/확률과통계_AI융합_프로젝트_계획서_양식.html")
+path.write_text(html, encoding="utf-8")
+str(path)
