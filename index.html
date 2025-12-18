@@ -772,15 +772,75 @@ html = r"""<!doctype html>
   </div>
 
   <script>
-    // Optional: basic reset (does not affect browser autofill)
-    function resetForm(){
-      if(!confirm("작성한 내용을 모두 지울까요? (브라우저에 따라 일부 입력은 남을 수 있어요)")) return;
-      document.querySelectorAll('input[type="text"], input[type="number"]').forEach(i => i.value = "");
-      document.querySelectorAll('textarea').forEach(t => t.value = "");
-      document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
-      window.scrollTo({top:0, behavior:"smooth"});
+/* ===============================
+   자동 저장(LocalStorage) 설정
+================================ */
+const STORAGE_KEY = "stat_ai_project_plan_v1";
+const statusEl = document.getElementById("saveStatus");
+
+/* ---------- 저장 ---------- */
+let saveTimer;
+function autoSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const data = {};
+
+    document.querySelectorAll("input, textarea").forEach(el => {
+      if(!el.id && !el.name) return; // 안전장치
+      const key = el.id || el.name || el.placeholder;
+      if(el.type === "checkbox"){
+        data[key] = el.checked;
+      } else {
+        data[key] = el.value;
+      }
+    });
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if(statusEl){
+      statusEl.textContent = "자동 저장됨 (" + new Date().toLocaleTimeString() + ")";
     }
-  </script>
+  }, 300);
+}
+
+/* ---------- 불러오기 ---------- */
+window.addEventListener("load", () => {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+
+  document.querySelectorAll("input, textarea").forEach(el => {
+    const key = el.id || el.name || el.placeholder;
+    if(saved[key] !== undefined){
+      if(el.type === "checkbox"){
+        el.checked = saved[key];
+      } else {
+        el.value = saved[key];
+      }
+    }
+  });
+
+  if(statusEl && Object.keys(saved).length > 0){
+    statusEl.textContent = "이전 작성 내용 불러옴";
+  }
+});
+
+/* ---------- 이벤트 연결 ---------- */
+document.addEventListener("input", autoSave);
+document.addEventListener("change", autoSave);
+
+/* ---------- 기존 초기화 함수 확장 ---------- */
+function resetForm(){
+  if(!confirm("작성한 내용을 모두 지울까요? (자동 저장된 내용도 함께 삭제됩니다)")) return;
+
+  document.querySelectorAll('input[type="text"], input[type="number"]').forEach(i => i.value = "");
+  document.querySelectorAll('textarea').forEach(t => t.value = "");
+  document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+
+  localStorage.removeItem(STORAGE_KEY);
+  if(statusEl) statusEl.textContent = "저장 초기화됨";
+
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+</script>
+
 </body>
 </html>
 """
